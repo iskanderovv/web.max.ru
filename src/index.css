@@ -1,5 +1,20 @@
 @import 'tailwindcss';
 
+/* Telegram Web (A) light palette */
+@theme {
+  --color-tg-blue: #3390ec;
+  --color-tg-blue-dark: #2b7fd1;
+  --color-tg-text: #000000;
+  --color-tg-secondary: #707579;
+  --color-tg-border: #dfe1e5;
+  --color-tg-hover: #f4f4f5;
+  --color-tg-out: #eeffde;
+  --color-tg-out-meta: #4fae4e;
+  --color-tg-danger: #df3f40;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Roboto', 'Apple Color Emoji', 'Segoe UI', sans-serif;
+}
+
 html,
 body,
 #root {
@@ -7,5 +22,22 @@ body,
 }
 
 body {
-  @apply bg-slate-100 text-slate-900 antialiased;
+  @apply bg-white text-tg-text antialiased;
+  font-family: var(--font-sans);
+}
+
+.tg-wallpaper {
+  background-color: #cfdcb8;
+  background-image:
+    radial-gradient(circle at 20% 15%, rgb(255 255 255 / 0.35), transparent 40%),
+    radial-gradient(circle at 80% 85%, rgb(110 150 90 / 0.25), transparent 45%),
+    linear-gradient(160deg, #dbe6c5 0%, #b9cf9f 100%);
+}
+
+.tg-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.tg-scroll::-webkit-scrollbar-thumb {
+  background: rgb(0 0 0 / 0.2);
+  border-radius: 3px;
 }

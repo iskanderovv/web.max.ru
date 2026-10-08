@@ -71,7 +71,7 @@ export function NewChatDialog({ onClose }: { onClose: () => void }) {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="998901234567 or @username"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-tg-blue/30"
           />
         </label>
         {error && (
@@ -82,7 +82,7 @@ export function NewChatDialog({ onClose }: { onClose: () => void }) {
         <button
           type="submit"
           disabled={lookup.isPending}
-          className="w-full rounded-lg bg-sky-500 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-60"
+          className="w-full rounded-lg bg-tg-blue py-2 text-sm font-medium text-white hover:bg-tg-blue-dark disabled:opacity-60"
         >
           {lookup.isPending ? 'Checking…' : 'Start chat'}
         </button>

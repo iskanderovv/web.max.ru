@@ -3,7 +3,7 @@ import { Sidebar } from './Sidebar'
 
 export function ChatShell() {
   return (
-    <div className="flex h-full bg-slate-50">
+    <div className="flex h-full bg-white">
       <Sidebar />
       <ChatWindow />
     </div>

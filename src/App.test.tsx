@@ -83,6 +83,7 @@ describe('login', () => {
     })
     useChats.getState().ensureChat({ chatId: '1', title: 'A' })
     renderApp()
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
     await user.click(screen.getByRole('button', { name: /log out/i }))
     expect(useAuth.getState().credentials).toBeNull()
     expect(useChats.getState().chats).toEqual({})
@@ -145,5 +146,74 @@ describe('new chat', () => {
     await user.click(screen.getByRole('button', { name: /start chat/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/enter a phone number/i)
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('sending', () => {
+  const setup = () => {
+    useAuth.setState({
+      credentials: { apiUrl: 'https://x.test', idInstance: '1', apiTokenInstance: 't' },
+    })
+    useChats.getState().ensureChat({ chatId: '55', title: '@bob_test' })
+    useChats.getState().selectChat('55')
+  }
+
+  it('sends on Enter, shows message and marks it sent', async () => {
+    const user = userEvent.setup()
+    setup()
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ idMessage: 'srv-1' })))
+    vi.stubGlobal('fetch', fetchMock)
+    renderApp()
+    await user.type(screen.getByLabelText('Message'), 'hello{Enter}')
+    expect(await screen.findByLabelText('Sent')).toBeInTheDocument()
+    const body = JSON.parse(
+      (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string,
+    )
+    expect(body).toEqual({ chatId: '55', message: 'hello' })
+    expect(useChats.getState().chats['55'].messages[0]).toMatchObject({
+      id: 'srv-1',
+      text: 'hello',
+      direction: 'out',
+      status: 'sent',
+    })
+    expect(screen.getByLabelText('Message')).toHaveValue('')
+  })
+
+  it('Shift+Enter adds a new line instead of sending', async () => {
+    const user = userEvent.setup()
+    setup()
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    renderApp()
+    await user.type(screen.getByLabelText('Message'), 'a{Shift>}{Enter}{/Shift}b')
+    expect(screen.getByLabelText('Message')).toHaveValue('a\nb')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('does not send blank text', async () => {
+    const user = userEvent.setup()
+    setup()
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    renderApp()
+    await user.type(screen.getByLabelText('Message'), '   {Enter}')
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: /send message/i })).toBeDisabled()
+  })
+
+  it('marks failed and retries', async () => {
+    const user = userEvent.setup()
+    setup()
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ idMessage: 'srv-2' })))
+    vi.stubGlobal('fetch', fetchMock)
+    renderApp()
+    await user.type(screen.getByLabelText('Message'), 'retry me{Enter}')
+    await user.click(await screen.findByRole('button', { name: /failed to send/i }))
+    expect(await screen.findByLabelText('Sent')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(useChats.getState().chats['55'].messages).toHaveLength(1)
   })
 })

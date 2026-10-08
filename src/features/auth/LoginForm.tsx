@@ -10,7 +10,7 @@ import { useAuth } from '@/store/auth'
 type FormValues = z.input<typeof credentialsSchema>
 
 const inputCls =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200'
+  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-tg-blue/30'
 
 export function LoginForm() {
   const login = useAuth((s) => s.login)
@@ -44,14 +44,14 @@ export function LoginForm() {
   })
 
   return (
-    <main className="grid h-full place-items-center p-4">
+    <main className="tg-wallpaper grid h-full place-items-center p-4">
       <form
         onSubmit={handleSubmit((v) => connect.mutate(v))}
         className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-lg"
         noValidate
       >
         <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-full bg-sky-500 text-white">
+          <span className="grid size-10 place-items-center rounded-full bg-tg-blue text-white">
             <MessageCircle size={22} />
           </span>
           <div>
@@ -89,7 +89,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={connect.isPending}
-          className="w-full rounded-lg bg-sky-500 py-2 text-sm font-medium text-white hover:bg-sky-600 disabled:opacity-60"
+          className="w-full rounded-lg bg-tg-blue py-2 text-sm font-medium text-white hover:bg-tg-blue-dark disabled:opacity-60"
         >
           {connect.isPending ? 'Connecting…' : 'Connect'}
         </button>
