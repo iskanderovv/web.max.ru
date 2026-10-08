@@ -1,13 +1,15 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import incoming from '../fixtures/receive-incoming-text.json'
 import App from './App'
 import { useAuth } from './store/auth'
 import { useChats } from './store/chats'
+import { fakeFetch } from './test/fakeFetch'
 
 function renderApp() {
-  const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={client}>
       <App />
@@ -15,18 +17,12 @@ function renderApp() {
   )
 }
 
-function mockApi(state: string, incomingWebhook = 'yes') {
-  const fn = vi.fn(
-    async (url: string) =>
-      new Response(
-        JSON.stringify(
-          url.includes('getStateInstance') ? { stateInstance: state } : { incomingWebhook },
-        ),
-      ),
-  )
-  vi.stubGlobal('fetch', fn)
-  return fn
-}
+const bodyOf = (call?: { init?: RequestInit }) => JSON.parse(String(call?.init?.body))
+
+const logIn = () =>
+  useAuth.setState({
+    credentials: { apiUrl: 'https://x.test', idInstance: '1', apiTokenInstance: 't' },
+  })
 
 beforeEach(() => {
   localStorage.clear()
@@ -35,13 +31,13 @@ beforeEach(() => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
-async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText('idInstance'), '410022760325')
-  await user.type(screen.getByLabelText('apiTokenInstance'), 'secret')
-  await user.click(screen.getByRole('button', { name: /connect/i }))
-}
-
 describe('login', () => {
+  async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
+    await user.type(screen.getByLabelText('idInstance'), '410022760325')
+    await user.type(screen.getByLabelText('apiTokenInstance'), 'secret')
+    await user.click(screen.getByRole('button', { name: /connect/i }))
+  }
+
   it('shows validation errors for empty form', async () => {
     const user = userEvent.setup()
     renderApp()
@@ -59,17 +55,17 @@ describe('login', () => {
 
   it('logs in when instance is authorized and persists credentials', async () => {
     const user = userEvent.setup()
-    mockApi('authorized')
+    fakeFetch({ getStateInstance: { stateInstance: 'authorized' } })
     renderApp()
     await fillAndSubmit(user)
     await waitFor(() => expect(useAuth.getState().credentials?.idInstance).toBe('410022760325'))
-    expect(screen.getByText(/no chats yet/i)).toBeInTheDocument()
+    expect(await screen.findByText(/no chats yet/i)).toBeInTheDocument()
     expect(localStorage.getItem('tg-chat-auth')).toContain('410022760325')
   })
 
   it('rejects an instance that is not authorized', async () => {
     const user = userEvent.setup()
-    mockApi('notAuthorized')
+    fakeFetch({ getStateInstance: { stateInstance: 'notAuthorized' } })
     renderApp()
     await fillAndSubmit(user)
     expect(await screen.findByRole('alert')).toHaveTextContent(/not authorized/i)
@@ -78,9 +74,8 @@ describe('login', () => {
 
   it('log out clears credentials and chats', async () => {
     const user = userEvent.setup()
-    useAuth.setState({
-      credentials: { apiUrl: 'https://x.test', idInstance: '1', apiTokenInstance: 't' },
-    })
+    fakeFetch()
+    logIn()
     useChats.getState().ensureChat({ chatId: '1', title: 'A' })
     renderApp()
     await user.click(screen.getByRole('button', { name: 'Menu' }))
@@ -92,41 +87,25 @@ describe('login', () => {
 })
 
 describe('new chat', () => {
-  const logIn = () =>
-    useAuth.setState({
-      credentials: { apiUrl: 'https://x.test', idInstance: '1', apiTokenInstance: 't' },
-    })
-
   it('creates a chat from @username via checkAccount', async () => {
     const user = userEvent.setup()
     logIn()
-    const fetchMock = vi.fn(
-      async () =>
-        new Response(
-          JSON.stringify({ exist: true, chatId: '8019310179', username: '@akbar_iskanderov' }),
-        ),
-    )
-    vi.stubGlobal('fetch', fetchMock)
+    const api = fakeFetch({
+      checkAccount: { exist: true, chatId: '8019310179', username: '@akbar_iskanderov' },
+    })
     renderApp()
     await user.click(screen.getByRole('button', { name: /new chat/i }))
     await user.type(screen.getByLabelText(/phone number or @username/i), '@akbar_iskanderov')
     await user.click(screen.getByRole('button', { name: /start chat/i }))
     await waitFor(() => expect(useChats.getState().activeChatId).toBe('8019310179'))
-    expect(
-      JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string),
-    ).toEqual({
-      username: '@akbar_iskanderov',
-    })
+    expect(bodyOf(api.of('checkAccount')[0])).toEqual({ username: '@akbar_iskanderov' })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('shows a message when the account does not exist', async () => {
     const user = userEvent.setup()
     logIn()
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response(JSON.stringify({ exist: false, chatId: '' }))),
-    )
+    fakeFetch({ checkAccount: { exist: false, chatId: '' } })
     renderApp()
     await user.click(screen.getByRole('button', { name: /new chat/i }))
     await user.type(screen.getByLabelText(/phone number or @username/i), '998901234567')
@@ -138,22 +117,19 @@ describe('new chat', () => {
   it('rejects malformed input without calling the API', async () => {
     const user = userEvent.setup()
     logIn()
-    const fetchMock = vi.fn()
-    vi.stubGlobal('fetch', fetchMock)
+    const api = fakeFetch()
     renderApp()
     await user.click(screen.getByRole('button', { name: /new chat/i }))
     await user.type(screen.getByLabelText(/phone number or @username/i), 'x')
     await user.click(screen.getByRole('button', { name: /start chat/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/enter a phone number/i)
-    expect(fetchMock).not.toHaveBeenCalled()
+    expect(api.of('checkAccount')).toHaveLength(0)
   })
 })
 
 describe('sending', () => {
   const setup = () => {
-    useAuth.setState({
-      credentials: { apiUrl: 'https://x.test', idInstance: '1', apiTokenInstance: 't' },
-    })
+    logIn()
     useChats.getState().ensureChat({ chatId: '55', title: '@bob_test' })
     useChats.getState().selectChat('55')
   }
@@ -161,15 +137,11 @@ describe('sending', () => {
   it('sends on Enter, shows message and marks it sent', async () => {
     const user = userEvent.setup()
     setup()
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ idMessage: 'srv-1' })))
-    vi.stubGlobal('fetch', fetchMock)
+    const api = fakeFetch({ sendMessage: { idMessage: 'srv-1' } })
     renderApp()
     await user.type(screen.getByLabelText('Message'), 'hello{Enter}')
     expect(await screen.findByLabelText('Sent')).toBeInTheDocument()
-    const body = JSON.parse(
-      (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string,
-    )
-    expect(body).toEqual({ chatId: '55', message: 'hello' })
+    expect(bodyOf(api.of('sendMessage')[0])).toEqual({ chatId: '55', message: 'hello' })
     expect(useChats.getState().chats['55'].messages[0]).toMatchObject({
       id: 'srv-1',
       text: 'hello',
@@ -182,38 +154,96 @@ describe('sending', () => {
   it('Shift+Enter adds a new line instead of sending', async () => {
     const user = userEvent.setup()
     setup()
-    const fetchMock = vi.fn()
-    vi.stubGlobal('fetch', fetchMock)
+    const api = fakeFetch()
     renderApp()
     await user.type(screen.getByLabelText('Message'), 'a{Shift>}{Enter}{/Shift}b')
     expect(screen.getByLabelText('Message')).toHaveValue('a\nb')
-    expect(fetchMock).not.toHaveBeenCalled()
+    expect(api.of('sendMessage')).toHaveLength(0)
   })
 
   it('does not send blank text', async () => {
     const user = userEvent.setup()
     setup()
-    const fetchMock = vi.fn()
-    vi.stubGlobal('fetch', fetchMock)
+    const api = fakeFetch()
     renderApp()
     await user.type(screen.getByLabelText('Message'), '   {Enter}')
-    expect(fetchMock).not.toHaveBeenCalled()
+    expect(api.of('sendMessage')).toHaveLength(0)
     expect(screen.getByRole('button', { name: /send message/i })).toBeDisabled()
   })
 
   it('marks failed and retries', async () => {
     const user = userEvent.setup()
     setup()
-    const fetchMock = vi
-      .fn()
-      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ idMessage: 'srv-2' })))
-    vi.stubGlobal('fetch', fetchMock)
+    let n = 0
+    const api = fakeFetch({
+      sendMessage: () => {
+        if (n++ === 0) throw new TypeError('Failed to fetch')
+        return new Response(JSON.stringify({ idMessage: 'srv-2' }))
+      },
+    })
     renderApp()
     await user.type(screen.getByLabelText('Message'), 'retry me{Enter}')
     await user.click(await screen.findByRole('button', { name: /failed to send/i }))
     expect(await screen.findByLabelText('Sent')).toBeInTheDocument()
-    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(api.of('sendMessage')).toHaveLength(2)
     expect(useChats.getState().chats['55'].messages).toHaveLength(1)
+  })
+})
+
+describe('receiving', () => {
+  it('shows an incoming reply in the open chat and deletes the notification', async () => {
+    logIn()
+    useChats.getState().ensureChat({ chatId: '10000000', title: '@vasilisa' })
+    useChats.getState().selectChat('10000000')
+    let served = false
+    const api = fakeFetch({
+      receiveNotification: (_u, init) => {
+        if (!served) {
+          served = true
+          return new Response(JSON.stringify(incoming))
+        }
+        return new Promise<Response>((_res, rej) =>
+          init?.signal?.addEventListener('abort', () =>
+            rej(new DOMException('Aborted', 'AbortError')),
+          ),
+        ) as unknown as Response
+      },
+      deleteNotification: { result: true, reason: '' },
+    })
+    renderApp()
+    const list = await screen.findByRole('list', { name: 'Messages' })
+    expect(await within(list).findByText('Hello from Green-API!')).toBeInTheDocument()
+    await waitFor(() => expect(api.of('deleteNotification')).toHaveLength(1))
+    expect(api.of('deleteNotification')[0].url).toMatch(/deleteNotification\/t\/1234567$/)
+  })
+
+  it('shows unread badge for a chat that is not open', async () => {
+    logIn()
+    useChats.getState().ensureChat({ chatId: '10000000', title: '@vasilisa' })
+    let served = false
+    fakeFetch({
+      receiveNotification: (_u, init) => {
+        if (!served) {
+          served = true
+          return new Response(JSON.stringify(incoming))
+        }
+        return new Promise<Response>((_res, rej) =>
+          init?.signal?.addEventListener('abort', () =>
+            rej(new DOMException('Aborted', 'AbortError')),
+          ),
+        ) as unknown as Response
+      },
+      deleteNotification: { result: true, reason: '' },
+    })
+    renderApp()
+    expect(await screen.findByText('Hello from Green-API!')).toBeInTheDocument()
+    expect(useChats.getState().chats['10000000'].unread).toBe(1)
+  })
+
+  it('warns when incoming notifications are disabled', async () => {
+    logIn()
+    fakeFetch({ getSettings: { incomingWebhook: 'no' } })
+    renderApp()
+    expect(await screen.findByRole('alert')).toHaveTextContent(/incoming messages are disabled/i)
   })
 })

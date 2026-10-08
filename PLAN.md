@@ -169,3 +169,9 @@ Har qadam oxirida: `tsc --noEmit`, lint, test yashil + alohida commit.
 - **R3:** instance `authorized`, `typeInstance: "telegram"`.
 - **Topilma:** `incomingWebhook` default `"no"`, shu holatda kiruvchi xabar navbatga tushmaydi. `setSettings {incomingWebhook:"yes"}` yuborildi (`saveSettings:true`); GREEN-API bo'yicha qo'llanishi bir necha daqiqa olishi mumkin. README'ga qo'lda sozlash yo'riqnomasini yozish kerak. Ilova login'da `getSettings` o'qib, o'chiq bo'lsa ogohlantiradi.
 - **Bo'sh navbat:** `receiveNotification` bo'sh bo'lsa HTTP 200 va tana `null`. Klient `null`ni bo'sh deb qabul qilishi shart.
+
+## 10. Amalga oshirishdagi qarorlar
+
+- **Ko'rinish**: Telegram Web (A) uslubi (sabab: platforma Telegram; task 4-bandi web.max.ru'ni nomlaydi, lekin Telegram uchun alohida prototip ko'rsatmaydi).
+- **Qabul qilish**: faqat foydalanuvchi ilovada ochgan chatlardan kelgan xabarlar saqlanadi (instance haqiqiy akkaunt: begona chat/kanal xabarlari ilovaga tushmasligi uchun). Boshqa bildirishnomalar baribir `deleteNotification` bilan navbatdan olinadi. Bu rejadagi "noma'lum chatni avtomatik yaratish"dan ongli chetlanish.
+- **Bildirishnoma qayta ishlash xatosi**: handler xato bersa ham `deleteNotification` chaqiriladi, aks holda FIFO navbat to'xtab qoladi.
