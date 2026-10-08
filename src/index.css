@@ -1,16 +1,91 @@
 @import 'tailwindcss';
 
-/* Telegram Web (A) light palette */
-@theme {
+/*
+ * Telegram Web (A) palette. Every surface color is a CSS variable switched by
+ * <html data-theme="light|dark">; utilities below read them live, so no class changes on toggle.
+ */
+:root {
+  color-scheme: light;
+  --tg-surface: #ffffff;
+  --tg-hover: #f4f4f5;
+  --tg-border: #dfe1e5;
+  --tg-text: #000000;
+  --tg-secondary: #707579;
+  --tg-out: #eeffde;
+  --tg-out-meta: #4fae4e;
+  --tg-danger: #df3f40;
+  --tg-error-bg: #fef2f2;
+  --tg-error-text: #b91c1c;
+  --tg-warn-bg: #fef3c7;
+  --tg-warn-text: #78350f;
+  --tg-ring: rgb(0 0 0 / 0.06);
+  --tg-scroll: rgb(0 0 0 / 0.2);
+  --wall-a: #dbe6c5;
+  --wall-b: #b9cf9f;
+  --wall-hi: rgb(255 255 255 / 0.35);
+  --wall-lo: rgb(110 150 90 / 0.25);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --tg-surface: #212121;
+  --tg-hover: #2c2c2c;
+  --tg-border: #3a3a3a;
+  --tg-text: #f5f5f5;
+  --tg-secondary: #a0a4a8;
+  --tg-out: #2b5278;
+  --tg-out-meta: #8fb9e3;
+  --tg-danger: #ff6b6b;
+  --tg-error-bg: #3b1f20;
+  --tg-error-text: #ffb4b4;
+  --tg-warn-bg: #3d3216;
+  --tg-warn-text: #fcd34d;
+  --tg-ring: rgb(255 255 255 / 0.1);
+  --tg-scroll: rgb(255 255 255 / 0.25);
+  --wall-a: #16222d;
+  --wall-b: #0b1219;
+  --wall-hi: rgb(255 255 255 / 0.04);
+  --wall-lo: rgb(60 100 140 / 0.18);
+}
+
+/* Registered so the wallpaper gradient can animate between themes. */
+@property --wall-a {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #dbe6c5;
+}
+@property --wall-b {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #b9cf9f;
+}
+@property --wall-hi {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgb(255 255 255 / 0.35);
+}
+@property --wall-lo {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgb(110 150 90 / 0.25);
+}
+
+@theme inline {
   --color-tg-blue: #3390ec;
   --color-tg-blue-dark: #2b7fd1;
-  --color-tg-text: #000000;
-  --color-tg-secondary: #707579;
-  --color-tg-border: #dfe1e5;
-  --color-tg-hover: #f4f4f5;
-  --color-tg-out: #eeffde;
-  --color-tg-out-meta: #4fae4e;
-  --color-tg-danger: #df3f40;
+  --color-tg-surface: var(--tg-surface);
+  --color-tg-hover: var(--tg-hover);
+  --color-tg-border: var(--tg-border);
+  --color-tg-text: var(--tg-text);
+  --color-tg-secondary: var(--tg-secondary);
+  --color-tg-out: var(--tg-out);
+  --color-tg-out-meta: var(--tg-out-meta);
+  --color-tg-danger: var(--tg-danger);
+  --color-tg-error-bg: var(--tg-error-bg);
+  --color-tg-error-text: var(--tg-error-text);
+  --color-tg-warn-bg: var(--tg-warn-bg);
+  --color-tg-warn-text: var(--tg-warn-text);
+  --color-tg-ring: var(--tg-ring);
   --font-sans:
     -apple-system, BlinkMacSystemFont, 'Roboto', 'Apple Color Emoji', 'Segoe UI', sans-serif;
 }
@@ -22,24 +97,51 @@ body,
 }
 
 body {
-  @apply bg-white text-tg-text antialiased;
+  @apply bg-tg-surface text-tg-text antialiased;
   font-family: var(--font-sans);
 }
 
 .tg-wallpaper {
-  background-color: #cfdcb8;
+  background-color: var(--wall-b);
   background-image:
-    radial-gradient(circle at 20% 15%, rgb(255 255 255 / 0.35), transparent 40%),
-    radial-gradient(circle at 80% 85%, rgb(110 150 90 / 0.25), transparent 45%),
-    linear-gradient(160deg, #dbe6c5 0%, #b9cf9f 100%);
+    radial-gradient(circle at 20% 15%, var(--wall-hi), transparent 40%),
+    radial-gradient(circle at 80% 85%, var(--wall-lo), transparent 45%),
+    linear-gradient(160deg, var(--wall-a) 0%, var(--wall-b) 100%);
 }
 
 .tg-scroll::-webkit-scrollbar {
   width: 6px;
 }
 .tg-scroll::-webkit-scrollbar-thumb {
-  background: rgb(0 0 0 / 0.2);
+  background: var(--tg-scroll);
   border-radius: 3px;
+}
+
+/* Added for ~350 ms around a toggle so the whole UI cross-fades instead of snapping. */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    fill 0.3s ease,
+    stroke 0.3s ease,
+    box-shadow 0.3s ease,
+    --wall-a 0.3s ease,
+    --wall-b 0.3s ease,
+    --wall-hi 0.3s ease,
+    --wall-lo 0.3s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition: none !important;
+  }
 }
 
 @keyframes tg-slide-in {

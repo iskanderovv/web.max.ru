@@ -53,7 +53,10 @@ export function DeleteMessageDialog({
           </label>
         )}
         {error && (
-          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
+          >
             {error}
           </p>
         )}
@@ -70,7 +73,7 @@ export function DeleteMessageDialog({
           type="button"
           onClick={confirm}
           disabled={pending}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-tg-danger hover:bg-red-50 disabled:opacity-60"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-tg-danger hover:bg-tg-error-bg disabled:opacity-60"
         >
           {pending ? 'Deleting…' : 'Delete'}
         </button>

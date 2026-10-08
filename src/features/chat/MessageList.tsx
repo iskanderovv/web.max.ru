@@ -85,7 +85,7 @@ function Bubble({
           setMenuOpen(true)
         }}
         className={`group relative max-w-[min(34rem,85%)] rounded-xl px-2.5 pt-1.5 pb-1 text-[15px] leading-snug shadow-sm ${
-          out ? 'bg-tg-out' : 'bg-white'
+          out ? 'bg-tg-out' : 'bg-tg-surface'
         } ${out ? 'rounded-br-sm' : 'rounded-bl-sm'}`}
       >
         <button
@@ -117,7 +117,7 @@ function Bubble({
             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
             <div
               role="menu"
-              className={`absolute top-6 z-20 w-40 rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5 ${
+              className={`absolute top-6 z-20 w-40 rounded-xl bg-tg-surface py-1 shadow-lg ring-1 ring-tg-ring ${
                 out ? 'right-0' : 'left-0'
               }`}
             >

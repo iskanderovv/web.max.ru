@@ -125,7 +125,7 @@ export function SearchResults({ query, onDone }: { query: string; onDone: () => 
             {lookup.error && (
               <p
                 role="alert"
-                className="mx-2 mb-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+                className="mx-2 mb-2 rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
               >
                 {lookup.error.message}
               </p>
@@ -139,7 +139,10 @@ export function SearchResults({ query, onDone }: { query: string; onDone: () => 
         <p className="p-6 text-center text-sm text-tg-secondary">No results for “{query.trim()}”</p>
       )}
       {(chats.isError || contacts.isError) && (
-        <p role="alert" className="m-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p
+          role="alert"
+          className="m-2 rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
+        >
           Could not load your Telegram chats. {(chats.error ?? contacts.error)?.message}
         </p>
       )}

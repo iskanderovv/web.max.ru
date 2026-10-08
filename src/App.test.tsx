@@ -6,6 +6,7 @@ import incoming from '../fixtures/receive-incoming-text.json'
 import App from './App'
 import { useAuth } from './store/auth'
 import { useChats } from './store/chats'
+import { useTheme } from './store/theme'
 import { fakeFetch } from './test/fakeFetch'
 
 function renderApp() {
@@ -942,5 +943,25 @@ describe('chat names', () => {
     const dialog = screen.getByRole('dialog', { name: 'New Contact' })
     expect(within(dialog).queryByText('?')).not.toBeInTheDocument()
     expect(within(dialog).getByLabelText('First name')).toBeInTheDocument()
+  })
+})
+
+describe('night mode', () => {
+  it('switch in the side menu toggles the theme without closing the menu', async () => {
+    const user = userEvent.setup()
+    logIn()
+    useTheme.setState({ theme: 'light' })
+    fakeFetch()
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    const sw = screen.getByRole('switch', { name: 'Night mode' })
+    expect(sw).toHaveAttribute('aria-checked', 'false')
+    await user.click(sw)
+    expect(sw).toHaveAttribute('aria-checked', 'true')
+    expect(document.documentElement.dataset.theme).toBe('dark')
+    expect(screen.getByRole('navigation', { name: /main menu/i })).toBeInTheDocument()
+    await user.click(sw)
+    expect(sw).toHaveAttribute('aria-checked', 'false')
+    expect(document.documentElement.dataset.theme).toBe('light')
   })
 })

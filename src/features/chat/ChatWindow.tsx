@@ -36,7 +36,7 @@ function ActiveChat({ chat }: { chat: Chat }) {
 
   return (
     <section className="tg-wallpaper flex min-w-0 flex-1 flex-col">
-      <header className="relative flex h-14 shrink-0 items-center gap-3 bg-white px-3 shadow-sm">
+      <header className="relative flex h-14 shrink-0 items-center gap-3 bg-tg-surface px-3 shadow-sm">
         <button
           onClick={() => useChats.getState().selectChat(null)}
           aria-label="Back"
@@ -71,7 +71,7 @@ function ActiveChat({ chat }: { chat: Chat }) {
             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
             <div
               role="menu"
-              className="absolute top-12 right-3 z-20 w-48 rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5"
+              className="absolute top-12 right-3 z-20 w-48 rounded-xl bg-tg-surface py-1 shadow-lg ring-1 ring-tg-ring"
             >
               <button
                 role="menuitem"

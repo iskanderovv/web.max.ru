@@ -10,7 +10,7 @@ import { useAuth } from '@/store/auth'
 type FormValues = z.input<typeof credentialsSchema>
 
 const inputCls =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-tg-blue/30'
+  'w-full rounded-lg border border-tg-border bg-tg-surface px-3 py-2 text-sm outline-none focus:border-tg-blue focus:ring-2 focus:ring-tg-blue/30'
 
 export function LoginForm() {
   const login = useAuth((s) => s.login)
@@ -47,7 +47,7 @@ export function LoginForm() {
     <main className="tg-wallpaper grid h-full place-items-center p-4">
       <form
         onSubmit={handleSubmit((v) => connect.mutate(v))}
-        className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-lg"
+        className="w-full max-w-sm space-y-4 rounded-2xl bg-tg-surface p-6 shadow-lg"
         noValidate
       >
         <div className="flex items-center gap-3">
@@ -56,7 +56,7 @@ export function LoginForm() {
           </span>
           <div>
             <h1 className="text-lg font-semibold">Telegram Chat</h1>
-            <p className="text-xs text-slate-500">Sign in with your GREEN-API instance</p>
+            <p className="text-xs text-tg-secondary">Sign in with your GREEN-API instance</p>
           </div>
         </div>
 
@@ -81,7 +81,10 @@ export function LoginForm() {
         </Field>
 
         {connect.error && (
-          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
+          >
             {connect.error.message}
           </p>
         )}
@@ -109,9 +112,9 @@ function Field({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-xs font-medium text-slate-600">{label}</span>
+      <span className="text-xs font-medium text-tg-secondary">{label}</span>
       {children}
-      {error && <span className="block text-xs text-red-600">{error}</span>}
+      {error && <span className="block text-xs text-tg-danger">{error}</span>}
     </label>
   )
 }

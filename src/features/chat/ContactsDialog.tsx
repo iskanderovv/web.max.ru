@@ -62,7 +62,10 @@ export function ContactsDialog({ onClose }: { onClose: () => void }) {
           <p className="p-6 text-center text-sm text-tg-secondary">Loading…</p>
         )}
         {contacts.isError && (
-          <p role="alert" className="m-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="m-3 rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
+          >
             {contacts.error.message}
           </p>
         )}

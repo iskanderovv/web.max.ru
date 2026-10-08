@@ -21,7 +21,7 @@ const NOT_FOUND =
   'This number is not on Telegram, or its privacy settings hide it. Check the number and try again.'
 
 const fieldCls =
-  'w-full rounded-xl border border-tg-border bg-white px-3 py-3 text-[15px] outline-none placeholder:text-tg-secondary focus:border-tg-blue focus:ring-1 focus:ring-tg-blue'
+  'w-full rounded-xl border border-tg-border bg-tg-surface px-3 py-3 text-[15px] outline-none placeholder:text-tg-secondary focus:border-tg-blue focus:ring-1 focus:ring-tg-blue'
 
 export function NewContactDialog({ onClose }: { onClose: () => void }) {
   const api = useGreenApi()
@@ -104,7 +104,10 @@ export function NewContactDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         {create.error && (
-          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
+          >
             {create.error.message}
           </p>
         )}

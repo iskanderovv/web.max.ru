@@ -30,7 +30,7 @@ export function ConfirmDialog({
             onConfirm()
             onClose()
           }}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-tg-danger hover:bg-red-50"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-tg-danger hover:bg-tg-error-bg"
         >
           {confirmLabel}
         </button>

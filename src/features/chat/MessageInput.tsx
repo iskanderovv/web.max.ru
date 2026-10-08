@@ -81,7 +81,7 @@ export function MessageInput({
       }}
     >
       {editing && (
-        <div className="mb-1 flex items-center gap-3 rounded-t-2xl bg-white px-4 py-2 shadow-sm">
+        <div className="mb-1 flex items-center gap-3 rounded-t-2xl bg-tg-surface px-4 py-2 shadow-sm">
           <Pencil size={18} className="shrink-0 text-tg-blue" />
           <div className="min-w-0 flex-1 border-l-2 border-tg-blue pl-2 text-sm">
             <p className="font-medium text-tg-blue">Edit message</p>
@@ -98,12 +98,15 @@ export function MessageInput({
         </div>
       )}
       {error && (
-        <p role="alert" className="mb-1 rounded-lg bg-red-50 px-3 py-1.5 text-sm text-red-700">
+        <p
+          role="alert"
+          className="mb-1 rounded-lg bg-tg-error-bg px-3 py-1.5 text-sm text-tg-error-text"
+        >
           {error}
         </p>
       )}
       <div className="flex items-end gap-2">
-        <div className="flex min-h-[54px] flex-1 items-center rounded-2xl bg-white px-4 py-3 shadow-sm">
+        <div className="flex min-h-[54px] flex-1 items-center rounded-2xl bg-tg-surface px-4 py-3 shadow-sm">
           <textarea
             ref={ref}
             value={value}
@@ -137,7 +140,7 @@ export function MessageInput({
           type="submit"
           disabled={!canSend}
           aria-label={editing ? 'Save changes' : 'Send message'}
-          className="grid size-[54px] shrink-0 place-items-center rounded-full bg-tg-blue text-white shadow-sm transition hover:bg-tg-blue-dark disabled:bg-white disabled:text-tg-secondary"
+          className="grid size-[54px] shrink-0 place-items-center rounded-full bg-tg-blue text-white shadow-sm transition hover:bg-tg-blue-dark disabled:bg-tg-surface disabled:text-tg-secondary"
         >
           {editing ? <Check size={24} /> : <Send size={22} />}
         </button>

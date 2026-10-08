@@ -21,7 +21,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`relative flex h-full w-full shrink-0 flex-col border-r border-tg-border bg-white md:w-[22rem] ${
+      className={`relative flex h-full w-full shrink-0 flex-col border-r border-tg-border bg-tg-surface md:w-[22rem] ${
         activeChatId ? 'hidden md:flex' : 'flex'
       }`}
     >
