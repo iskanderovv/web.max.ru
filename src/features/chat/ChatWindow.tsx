@@ -1,9 +1,10 @@
 import { ArrowLeft, MoreVertical } from 'lucide-react'
 import { useState } from 'react'
 import { useChatSync } from '@/hooks/useChatSync'
-import { useChats, type Chat } from '@/store/chats'
+import { useChats, type Chat, type ChatMessage } from '@/store/chats'
 import { Avatar } from './Avatar'
 import { ConfirmDialog } from './ConfirmDialog'
+import { DeleteMessageDialog } from './DeleteMessageDialog'
 import { MessageInput } from './MessageInput'
 import { MessageList } from './MessageList'
 
@@ -26,6 +27,8 @@ function ActiveChat({ chat }: { chat: Chat }) {
   useChatSync(chat.chatId)
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirm, setConfirm] = useState<'clear' | 'delete' | null>(null)
+  const [editing, setEditing] = useState<ChatMessage | null>(null)
+  const [deleting, setDeleting] = useState<ChatMessage | null>(null)
 
   return (
     <section className="tg-wallpaper flex min-w-0 flex-1 flex-col">
@@ -92,11 +95,24 @@ function ActiveChat({ chat }: { chat: Chat }) {
           </span>
         </div>
       ) : (
-        <MessageList chat={chat} />
+        <MessageList chat={chat} onEdit={setEditing} onDelete={setDeleting} />
       )}
 
-      <MessageInput chatId={chat.chatId} />
+      <MessageInput
+        key={editing?.id ?? 'new'}
+        chatId={chat.chatId}
+        editing={editing}
+        onEditDone={() => setEditing(null)}
+      />
 
+      {deleting && (
+        <DeleteMessageDialog
+          chatId={chat.chatId}
+          chatTitle={chat.title}
+          message={deleting}
+          onClose={() => setDeleting(null)}
+        />
+      )}
       {confirm === 'delete' && (
         <ConfirmDialog
           title="Delete chat"

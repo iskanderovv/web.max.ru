@@ -7,6 +7,8 @@ import {
   contactsSchema,
   parseHistory,
   deleteNotificationSchema,
+  editMessageSchema,
+  emptyResponseSchema,
   notificationSchema,
   sendMessageSchema,
   settingsSchema,
@@ -66,6 +68,30 @@ export function createGreenApi(c: Credentials) {
       })
       return parseHistory(raw)
     },
+
+    /** Only own (outgoing) messages. `forEveryone=false` deletes just on our side. */
+    deleteMessage: (chatId: string, idMessage: string, forEveryone = true, signal?: AbortSignal) =>
+      request(c, 'deleteMessage', emptyResponseSchema, {
+        method: 'POST',
+        body: { chatId, idMessage, onlySenderDelete: !forEveryone },
+        signal,
+      }),
+
+    /** Only own text messages, within the edit window (~48 h). */
+    editMessage: (chatId: string, idMessage: string, message: string, signal?: AbortSignal) =>
+      request(c, 'editMessage', editMessageSchema, {
+        method: 'POST',
+        body: { chatId, idMessage, message },
+        signal,
+      }),
+
+    /** Shows "typing…" to the recipient for `typingTime` ms (1000-20000). */
+    sendTyping: (chatId: string, typingTime = 2000, signal?: AbortSignal) =>
+      request(c, 'sendTyping', emptyResponseSchema, {
+        method: 'POST',
+        body: { chatId, typingTime },
+        signal,
+      }),
 
     sendMessage: (chatId: string, message: string, signal?: AbortSignal) =>
       request(c, 'sendMessage', sendMessageSchema, {

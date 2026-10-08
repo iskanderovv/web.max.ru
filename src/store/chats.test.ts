@@ -136,3 +136,22 @@ describe('chat management', () => {
     expect(status('o1')).toBe('read')
   })
 })
+
+describe('message edit/delete', () => {
+  it('deleteMessage removes only that message', () => {
+    const s = useChats.getState()
+    s.ensureChat({ chatId: '1', title: 'A' })
+    s.addMessage('1', msg('m1'))
+    s.addMessage('1', msg('m2'))
+    s.deleteMessage('1', 'm1')
+    expect(useChats.getState().chats['1'].messages.map((m) => m.id)).toEqual(['m2'])
+  })
+
+  it('editMessageText changes text and flags it edited', () => {
+    const s = useChats.getState()
+    s.ensureChat({ chatId: '1', title: 'A' })
+    s.addMessage('1', msg('m1', { direction: 'out' }))
+    s.editMessageText('1', 'm1', 'new')
+    expect(useChats.getState().chats['1'].messages[0]).toMatchObject({ text: 'new', edited: true })
+  })
+})

@@ -64,9 +64,16 @@ function httpMessage(status: number, body: unknown) {
   if (status === 401) return 'Invalid idInstance or apiTokenInstance'
   if (status === 429) return 'Too many requests, try again later'
   if (status === 469) return 'Telegram rate limit reached, try again in a few hours'
-  const detail =
-    body && typeof body === 'object' && 'message' in body
-      ? String((body as { message: unknown }).message)
-      : ''
-  return detail || `Request failed (${status})`
+  return detailOf(body) || `Request failed (${status})`
+}
+
+/** GREEN-API error bodies carry the human text in `message`, `error` or `reason`. */
+function detailOf(body: unknown) {
+  if (typeof body === 'string') return body.slice(0, 200)
+  if (!body || typeof body !== 'object') return ''
+  for (const key of ['message', 'error', 'reason']) {
+    const v = (body as Record<string, unknown>)[key]
+    if (typeof v === 'string' && v) return v
+  }
+  return ''
 }

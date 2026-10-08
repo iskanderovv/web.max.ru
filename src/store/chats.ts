@@ -15,6 +15,7 @@ export interface ChatMessage {
   /** Unix seconds. */
   timestamp: number
   status: MessageStatus
+  edited?: boolean
 }
 
 export interface Chat {
@@ -38,6 +39,8 @@ interface ChatsState {
   /** Returns false when a message with the same id already exists. */
   addMessage: (chatId: string, message: ChatMessage) => boolean
   updateMessage: (chatId: string, id: string, patch: Partial<ChatMessage>) => void
+  deleteMessage: (chatId: string, id: string) => void
+  editMessageText: (chatId: string, id: string, text: string) => void
   deleteChat: (chatId: string) => void
   clearHistory: (chatId: string) => void
   setAvatar: (chatId: string, url: string) => void
@@ -104,6 +107,24 @@ export const useChats = create<ChatsState>()(
           const chat = s.chats[chatId]
           if (!chat) return s
           const messages = chat.messages.map((m) => (m.id === id ? { ...m, ...patch } : m))
+          return { chats: { ...s.chats, [chatId]: { ...chat, messages } } }
+        }),
+
+      deleteMessage: (chatId, id) =>
+        set((s) => {
+          const chat = s.chats[chatId]
+          if (!chat) return s
+          const messages = chat.messages.filter((m) => m.id !== id)
+          return { chats: { ...s.chats, [chatId]: { ...chat, messages } } }
+        }),
+
+      editMessageText: (chatId, id, text) =>
+        set((s) => {
+          const chat = s.chats[chatId]
+          if (!chat) return s
+          const messages = chat.messages.map((m) =>
+            m.id === id ? { ...m, text, edited: true } : m,
+          )
           return { chats: { ...s.chats, [chatId]: { ...chat, messages } } }
         }),
 

@@ -131,3 +131,8 @@ export function parseHistory(raw: unknown): HistoryMessage[] {
   }
   return out.sort((a, b) => a.timestamp - b.timestamp)
 }
+
+/** Methods that answer with an empty body on success (deleteMessage, sendTyping). */
+export const emptyResponseSchema = z.unknown()
+
+export const editMessageSchema = z.object({ idMessage: z.string() })

@@ -1,10 +1,19 @@
-import { Check, CheckCheck, CircleAlert, Clock } from 'lucide-react'
-import { Fragment, useEffect, useRef } from 'react'
+import { Check, CheckCheck, ChevronDown, CircleAlert, Clock } from 'lucide-react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useSendMessage } from '@/hooks/useSendMessage'
+import { canEdit } from '@/lib/messageRules'
 import { dayKey, dayLabel, formatTime } from '@/lib/time'
 import type { Chat, ChatMessage } from '@/store/chats'
 
-export function MessageList({ chat }: { chat: Chat }) {
+export function MessageList({
+  chat,
+  onEdit,
+  onDelete,
+}: {
+  chat: Chat
+  onEdit: (m: ChatMessage) => void
+  onDelete: (m: ChatMessage) => void
+}) {
   const { retry } = useSendMessage()
   const endRef = useRef<HTMLDivElement>(null)
   const count = chat.messages.length
@@ -32,6 +41,8 @@ export function MessageList({ chat }: { chat: Chat }) {
                 message={m}
                 grouped={!!prev && !newDay && prev.direction === m.direction}
                 onRetry={() => retry(chat.chatId, m.id, m.text)}
+                onEdit={() => onEdit(m)}
+                onDelete={() => onDelete(m)}
               />
             </Fragment>
           )
@@ -46,30 +57,108 @@ function Bubble({
   message: m,
   grouped,
   onRetry,
+  onEdit,
+  onDelete,
 }: {
   message: ChatMessage
   grouped: boolean
   onRetry: () => void
+  onEdit: () => void
+  onDelete: () => void
 }) {
   const out = m.direction === 'out'
+  const [menuOpen, setMenuOpen] = useState(false)
+
   return (
     <li className={`flex ${out ? 'justify-end' : 'justify-start'} ${grouped ? '' : 'mt-1.5'}`}>
       <div
-        className={`max-w-[min(34rem,85%)] rounded-xl px-2.5 pt-1.5 pb-1 text-[15px] leading-snug shadow-sm ${
+        onContextMenu={(e) => {
+          e.preventDefault()
+          setMenuOpen(true)
+        }}
+        className={`group relative max-w-[min(34rem,85%)] rounded-xl px-2.5 pt-1.5 pb-1 text-[15px] leading-snug shadow-sm ${
           out ? 'bg-tg-out' : 'bg-white'
         } ${out ? 'rounded-br-sm' : 'rounded-bl-sm'}`}
       >
+        <button
+          type="button"
+          aria-label="Message actions"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          className="absolute top-0.5 right-0.5 rounded-full bg-inherit p-0.5 text-tg-secondary opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100"
+        >
+          <ChevronDown size={16} />
+        </button>
+
         <span className="break-words whitespace-pre-wrap">{m.text}</span>
         <span
           className={`float-right mt-2 ml-3 flex items-center gap-1 text-xs ${
             out ? 'text-tg-out-meta' : 'text-tg-secondary'
           }`}
         >
+          {m.edited && <span>edited</span>}
           {formatTime(m.timestamp)}
           {out && <Status message={m} onRetry={onRetry} />}
         </span>
+
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+            <div
+              role="menu"
+              className={`absolute top-6 z-20 w-40 rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5 ${
+                out ? 'right-0' : 'left-0'
+              }`}
+            >
+              {canEdit(m) && (
+                <MenuItem
+                  label="Edit"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    onEdit()
+                  }}
+                />
+              )}
+              <MenuItem
+                label="Copy text"
+                onClick={() => {
+                  setMenuOpen(false)
+                  void navigator.clipboard?.writeText(m.text).catch(() => {})
+                }}
+              />
+              <MenuItem
+                label="Delete"
+                danger
+                onClick={() => {
+                  setMenuOpen(false)
+                  onDelete()
+                }}
+              />
+            </div>
+          </>
+        )}
       </div>
     </li>
+  )
+}
+
+function MenuItem({
+  label,
+  onClick,
+  danger,
+}: {
+  label: string
+  onClick: () => void
+  danger?: boolean
+}) {
+  return (
+    <button
+      role="menuitem"
+      onClick={onClick}
+      className={`w-full px-4 py-2 text-left text-sm hover:bg-tg-hover ${danger ? 'text-tg-danger' : ''}`}
+    >
+      {label}
+    </button>
   )
 }
 
