@@ -2,6 +2,7 @@ import { ApiError } from './errors'
 import { request } from './client'
 import { z } from 'zod'
 import {
+  accountSettingsSchema,
   addContactSchema,
   avatarSchema,
   chatsSchema,
@@ -16,6 +17,7 @@ import {
   sendMessageSchema,
   settingsSchema,
   stateInstanceSchema,
+  type AccountSettings,
   type CheckAccountResult,
   type ContactInfo,
   type ChatInfo,
@@ -34,6 +36,10 @@ export function createGreenApi(c: Credentials) {
   return {
     getStateInstance: (signal?: AbortSignal) =>
       request(c, 'getStateInstance', stateInstanceSchema, { signal }),
+
+    /** The logged-in account itself: photo, phone, username and own chat id. */
+    getAccountSettings: (signal?: AbortSignal): Promise<AccountSettings> =>
+      request(c, 'getAccountSettings', accountSettingsSchema, { signal }),
 
     getSettings: (signal?: AbortSignal) => request(c, 'getSettings', settingsSchema, { signal }),
 

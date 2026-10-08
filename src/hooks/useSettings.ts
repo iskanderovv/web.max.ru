@@ -9,8 +9,3 @@ export function useSettings() {
     staleTime: Infinity,
   })
 }
-
-/** `998885880331@c.us` -> `+998885880331`. */
-export function phoneFromWid(wid: unknown) {
-  return typeof wid === 'string' && /^\d+/.test(wid) ? `+${wid.split('@')[0]}` : null
-}

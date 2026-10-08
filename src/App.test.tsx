@@ -458,19 +458,41 @@ describe('receiving', () => {
 })
 
 describe('menu, contacts, chat management', () => {
-  it('burger opens the side menu with account info and actions', async () => {
+  it('burger opens the side menu with the account photo, name and actions', async () => {
     const user = userEvent.setup()
     logIn()
-    fakeFetch({ getSettings: { incomingWebhook: 'yes', wid: '998885880331@c.us' } })
+    fakeFetch({
+      getAccountSettings: {
+        chatId: '777',
+        phone: '998885880331',
+        username: '@my_account',
+        avatar: 'https://img.test/me.jpg',
+      },
+      getContactInfo: { lastSeen: 0, name: 'Akbar Iskandarov' },
+    })
     renderApp()
     await user.click(screen.getByRole('button', { name: 'Menu' }))
     const nav = screen.getByRole('navigation', { name: /main menu/i })
-    expect(await within(nav).findByText('+998885880331')).toBeInTheDocument()
+    expect(await within(nav).findByText('Akbar Iskandarov')).toBeInTheDocument()
+    expect(within(nav).getByText('+998885880331 · @my_account')).toBeInTheDocument()
+    expect(nav.querySelector('img')).toHaveAttribute('src', 'https://img.test/me.jpg')
+    expect(within(nav).queryByText(/instance/i)).not.toBeInTheDocument()
     for (const name of ['New chat', 'Contacts', 'Log out']) {
       expect(within(nav).getByRole('button', { name })).toBeInTheDocument()
     }
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('navigation', { name: /main menu/i })).not.toBeInTheDocument()
+  })
+
+  it('side menu falls back to the phone number when the name is unknown', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({ getAccountSettings: { chatId: '777', phone: '998885880331', avatar: '' } })
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    const nav = screen.getByRole('navigation', { name: /main menu/i })
+    expect(await within(nav).findByText('+998885880331')).toBeInTheDocument()
+    expect(nav.querySelector('img')).toBeNull()
   })
 
   it('contacts list opens a chat with the picked contact', async () => {

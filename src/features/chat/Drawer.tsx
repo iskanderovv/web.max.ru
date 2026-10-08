@@ -1,8 +1,7 @@
 import { LogOut, SquarePen, Users } from 'lucide-react'
 import { useEffect, type ReactNode } from 'react'
-import { phoneFromWid, useSettings } from '@/hooks/useSettings'
+import { useAccount } from '@/hooks/useAccount'
 import { endSession } from '@/lib/session'
-import { useAuth } from '@/store/auth'
 import { Avatar } from './Avatar'
 
 export function Drawer({
@@ -14,15 +13,15 @@ export function Drawer({
   onNewChat: () => void
   onContacts: () => void
 }) {
-  const idInstance = useAuth((s) => s.credentials?.idInstance ?? '')
-  const settings = useSettings()
-  const phone = phoneFromWid(settings.data?.wid)
+  const account = useAccount()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  const title = account?.name || account?.phone || 'Telegram account'
 
   return (
     <div className="fixed inset-0 z-20">
@@ -32,9 +31,13 @@ export function Drawer({
         className="tg-drawer absolute inset-y-0 left-0 flex w-[19rem] max-w-[85vw] flex-col bg-white shadow-xl"
       >
         <div className="bg-tg-blue px-5 pt-6 pb-4 text-white">
-          <Avatar id={idInstance} title={phone ?? 'Me'} size={64} />
-          <p className="mt-3 font-medium">{phone ?? 'Telegram account'}</p>
-          <p className="text-sm text-white/80">Instance {idInstance}</p>
+          <Avatar id={account?.chatId ?? 'me'} title={title} url={account?.avatarUrl} size={64} />
+          <p className="mt-3 truncate font-medium">{title}</p>
+          {account && (
+            <p className="truncate text-sm text-white/80">
+              {[account.name ? account.phone : '', account.username].filter(Boolean).join(' · ')}
+            </p>
+          )}
         </div>
         <ul className="flex-1 py-2">
           <Item icon={<SquarePen size={22} />} label="New chat" onClick={onNewChat} />
