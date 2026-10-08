@@ -2,7 +2,7 @@
 
 Maqsad: GREEN-API orqali **Telegram**'da matnli xabar yuborish/qabul qilish uchun minimal chat UI. Muddat: 5 kun.
 
-> **Qaror (2026-10-08):** task MAX'ni asosiy deb belgilaydi, lekin WhatsApp/Telegram'ni ham ruxsat beradi. MAX `checkAccount` faqat RU/BY raqamlarini qabul qiladi, biz O'zbekistondamiz, shuning uchun **Telegram** tanlandi (docs: https://green-api.com/telegram). UI uchun prototip web.max.ru o'rniga Telegram Web uslubida. Messenjer qatlami adapter orqali ajratiladi, kerak bo'lsa MAX'ga o'tish oson.
+> **Qaror (2026-10-08):** task MAX'ni asosiy deb belgilaydi, lekin WhatsApp/Telegram'ni ham ruxsat beradi. MAX `checkAccount` faqat RU/BY raqamlarini qabul qiladi, biz O'zbekistondamiz, shuning uchun **Telegram** tanlandi (docs: https://green-api.com/telegram). UI ko'rinishi taskning 4-bandi bo'yicha https://web.max.ru/ chatiga o'xshatiladi (faqat tashqi ko'rinish, backend Telegram). Messenjer qatlami adapter orqali ajratiladi, kerak bo'lsa MAX'ga o'tish oson.
 
 ## 1. Stack (tasdiqlangan)
 
@@ -117,10 +117,10 @@ Har qadam oxirida: `tsc --noEmit`, lint, test yashil + alohida commit.
 - Testlar: poller (fake timers), dedup, delete har doim chaqirilishi.
 - **Chiqish**: qabul qiluvchi javob yozadi, u chatda paydo bo'ladi (asosiy E2E stsenariy).
 
-### Qadam 7: UI sayqali (Telegram Web uslubi)
+### Qadam 7: UI sayqali (web.max.ru uslubi)
 
 - 2 ustunli layout (sidebar + chat), xabar pufakchalari, vaqt, avtoskroll, o'qilmagan belgi, bo'sh holatlar, loading/error toast, mobil moslashuv, a11y (fokus, aria-label, klaviatura).
-- **Chiqish**: web.telegram.org'ga yaqin, toza ko'rinish.
+- **Chiqish**: web.max.ru'ga yaqin, toza ko'rinish.
 
 ### Qadam 8: Mustahkamlash
 
