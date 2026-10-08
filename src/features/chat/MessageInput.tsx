@@ -103,7 +103,7 @@ export function MessageInput({
         </p>
       )}
       <div className="flex items-end gap-2">
-        <div className="flex min-h-[54px] flex-1 items-end rounded-2xl bg-white px-4 py-3.5 shadow-sm">
+        <div className="flex min-h-[54px] flex-1 items-center rounded-2xl bg-white px-4 py-3 shadow-sm">
           <textarea
             ref={ref}
             value={value}
