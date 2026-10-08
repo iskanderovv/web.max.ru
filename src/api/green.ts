@@ -5,6 +5,7 @@ import {
   addContactSchema,
   avatarSchema,
   chatsSchema,
+  contactInfoSchema,
   checkAccountSchema,
   contactsSchema,
   parseHistory,
@@ -16,6 +17,7 @@ import {
   settingsSchema,
   stateInstanceSchema,
   type CheckAccountResult,
+  type ContactInfo,
   type ChatInfo,
   type Contact,
   type HistoryMessage,
@@ -79,6 +81,14 @@ export function createGreenApi(c: Credentials) {
         throw e
       }
     },
+
+    /** `lastSeen` is a unix time, or 0 when the user hides it. */
+    getContactInfo: (chatId: string, signal?: AbortSignal): Promise<ContactInfo> =>
+      request(c, 'getContactInfo', contactInfoSchema, {
+        method: 'POST',
+        body: { chatId },
+        signal,
+      }),
 
     async getAvatar(chatId: string, signal?: AbortSignal): Promise<string> {
       const res = await request(c, 'getAvatar', avatarSchema, {

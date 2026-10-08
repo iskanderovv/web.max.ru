@@ -762,3 +762,50 @@ describe('message actions', () => {
     expect(screen.getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument()
   })
 })
+
+describe('presence', () => {
+  const openChat = (type?: 'user' | 'bot' | 'channel') => {
+    logIn()
+    useChats.getState().ensureChat({ chatId: '9', title: '@zed_user', type })
+    useChats.getState().selectChat('9')
+  }
+
+  it('shows "online" for a fresh lastSeen', async () => {
+    openChat('user')
+    fakeFetch({ getContactInfo: { lastSeen: Math.floor(Date.now() / 1000) - 10 } })
+    renderApp()
+    expect(await screen.findByText('online')).toBeInTheDocument()
+  })
+
+  it('shows a last seen time for an older lastSeen', async () => {
+    openChat()
+    fakeFetch({ getContactInfo: { lastSeen: Math.floor(Date.now() / 1000) - 3 * 86_400 } })
+    renderApp()
+    expect(await screen.findByText(/^last seen [A-Z][a-z]{2} \d{1,2}$/)).toBeInTheDocument()
+  })
+
+  it('shows "last seen recently" when privacy hides it', async () => {
+    openChat('user')
+    fakeFetch({ getContactInfo: { lastSeen: 0 } })
+    renderApp()
+    expect(await screen.findByText('last seen recently')).toBeInTheDocument()
+  })
+
+  it('does not ask for presence of bots and channels', async () => {
+    openChat('bot')
+    const api = fakeFetch()
+    renderApp()
+    expect(screen.getByText(/bot/)).toBeInTheDocument()
+    expect(api.of('getContactInfo')).toHaveLength(0)
+  })
+
+  it('falls back to username when presence cannot be loaded', async () => {
+    openChat('user')
+    useChats
+      .getState()
+      .ensureChat({ chatId: '9', title: 'Zed', username: '@zed_user', type: 'user' })
+    fakeFetch({ getContactInfo: () => new Response('{}', { status: 500 }) })
+    renderApp()
+    expect(await screen.findByText('@zed_user')).toBeInTheDocument()
+  })
+})

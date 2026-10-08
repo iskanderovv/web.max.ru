@@ -1,6 +1,8 @@
 import { ArrowLeft, MoreVertical } from 'lucide-react'
 import { useState } from 'react'
 import { useChatSync } from '@/hooks/useChatSync'
+import { usePresence } from '@/hooks/usePresence'
+import { isOnline } from '@/lib/presence'
 import { typeLabel } from '@/lib/search'
 import { useChats, type Chat, type ChatMessage } from '@/store/chats'
 import { Avatar } from './Avatar'
@@ -26,6 +28,7 @@ export function ChatWindow() {
 
 function ActiveChat({ chat }: { chat: Chat }) {
   useChatSync(chat.chatId)
+  const presence = usePresence(chat.chatId, chat.type)
   const [menuOpen, setMenuOpen] = useState(false)
   const [confirm, setConfirm] = useState<'clear' | 'delete' | null>(null)
   const [editing, setEditing] = useState<ChatMessage | null>(null)
@@ -44,10 +47,14 @@ function ActiveChat({ chat }: { chat: Chat }) {
         <Avatar id={chat.chatId} title={chat.title} url={chat.avatarUrl} size={42} />
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-medium">{chat.title}</h2>
-          <p className="truncate text-sm text-tg-secondary">
-            {[chat.username !== chat.title ? chat.username : '', typeLabel(chat.type)]
-              .filter(Boolean)
-              .join(' · ') || 'Telegram'}
+          <p
+            className={`truncate text-sm ${presence && isOnline(presence) ? 'text-tg-blue' : 'text-tg-secondary'}`}
+          >
+            {presence ??
+              ([chat.username !== chat.title ? chat.username : '', typeLabel(chat.type)]
+                .filter(Boolean)
+                .join(' · ') ||
+                'Telegram')}
           </p>
         </div>
 

@@ -161,3 +161,9 @@ export const addContactSchema = z.looseObject({
   addContact: z.boolean().optional(),
   message: z.string().optional(),
 })
+
+export const contactInfoSchema = z.looseObject({
+  lastSeen: z.number().optional(),
+  chatType: z.string().optional(),
+})
+export type ContactInfo = z.infer<typeof contactInfoSchema>
