@@ -86,44 +86,253 @@ describe('login', () => {
   })
 })
 
-describe('new chat', () => {
-  it('creates a chat from @username via checkAccount', async () => {
+describe('new contact', () => {
+  async function openDialog(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole('button', { name: /new chat/i }))
+    return screen.getByRole('dialog', { name: 'New Contact' })
+  }
+  async function fill(
+    user: ReturnType<typeof userEvent.setup>,
+    v: { first?: string; last?: string; phone?: string },
+  ) {
+    if (v.first) await user.type(screen.getByLabelText('First name'), v.first)
+    if (v.last) await user.type(screen.getByLabelText('Last name'), v.last)
+    if (v.phone) await user.type(screen.getByLabelText('Phone Number'), v.phone)
+    await user.click(screen.getByRole('button', { name: /add contact/i }))
+  }
+
+  it('checks the number, adds the contact and opens the chat', async () => {
     const user = userEvent.setup()
     logIn()
     const api = fakeFetch({
-      checkAccount: { exist: true, chatId: '8019310179', username: '@akbar_iskanderov' },
+      checkAccount: { exist: true, chatId: '8019310179', username: '@ann_lee' },
+      addContact: { addContact: true },
     })
     renderApp()
-    await user.click(screen.getByRole('button', { name: /new chat/i }))
-    await user.type(screen.getByLabelText(/phone number or @username/i), '@akbar_iskanderov')
-    await user.click(screen.getByRole('button', { name: /start chat/i }))
+    await openDialog(user)
+    await fill(user, { first: 'Ann', last: 'Lee', phone: '+998 90 123-45-67' })
     await waitFor(() => expect(useChats.getState().activeChatId).toBe('8019310179'))
-    expect(bodyOf(api.of('checkAccount')[0])).toEqual({ username: '@akbar_iskanderov' })
+    expect(bodyOf(api.of('checkAccount')[0])).toEqual({ phoneNumber: 998901234567 })
+    expect(bodyOf(api.of('addContact')[0])).toEqual({
+      chatId: '8019310179',
+      firstName: 'Ann',
+      lastName: 'Lee',
+    })
+    expect(useChats.getState().chats['8019310179']).toMatchObject({
+      title: 'Ann Lee',
+      username: '@ann_lee',
+      type: 'user',
+    })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('shows a message when the account does not exist', async () => {
+  it('last name is optional and omitted from the request', async () => {
     const user = userEvent.setup()
     logIn()
-    fakeFetch({ checkAccount: { exist: false, chatId: '' } })
+    const api = fakeFetch({
+      checkAccount: { exist: true, chatId: '5' },
+      addContact: { addContact: true },
+    })
     renderApp()
-    await user.click(screen.getByRole('button', { name: /new chat/i }))
-    await user.type(screen.getByLabelText(/phone number or @username/i), '998901234567')
-    await user.click(screen.getByRole('button', { name: /start chat/i }))
-    expect(await screen.findByRole('alert')).toHaveTextContent(/no telegram account/i)
+    await openDialog(user)
+    await fill(user, { first: 'Bob', phone: '998901112233' })
+    await waitFor(() => expect(useChats.getState().chats['5']?.title).toBe('Bob'))
+    expect(bodyOf(api.of('addContact')[0])).toEqual({ chatId: '5', firstName: 'Bob' })
+  })
+
+  it('treats "already exists" as success', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({
+      checkAccount: { exist: true, chatId: '5' },
+      addContact: () =>
+        new Response(JSON.stringify({ message: 'Contact 5 already exists.' }), { status: 400 }),
+    })
+    renderApp()
+    await openDialog(user)
+    await fill(user, { first: 'Bob', phone: '998901112233' })
+    await waitFor(() => expect(useChats.getState().activeChatId).toBe('5'))
+  })
+
+  it('shows an error and creates nothing when the number is not on Telegram', async () => {
+    const user = userEvent.setup()
+    logIn()
+    const api = fakeFetch({ checkAccount: { exist: false, chatId: '' } })
+    renderApp()
+    await openDialog(user)
+    await fill(user, { first: 'Ghost', phone: '998901112233' })
+    expect(await screen.findByRole('alert')).toHaveTextContent(/not on telegram/i)
+    expect(api.of('addContact')).toHaveLength(0)
     expect(useChats.getState().chats).toEqual({})
   })
 
-  it('rejects malformed input without calling the API', async () => {
+  it('shows addContact errors', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({
+      checkAccount: { exist: true, chatId: '5' },
+      addContact: () =>
+        new Response(JSON.stringify({ message: 'Contact limit reached' }), { status: 400 }),
+    })
+    renderApp()
+    await openDialog(user)
+    await fill(user, { first: 'Bob', phone: '998901112233' })
+    expect(await screen.findByRole('alert')).toHaveTextContent('Contact limit reached')
+    expect(useChats.getState().chats).toEqual({})
+  })
+
+  it('validates first name and phone without calling the API', async () => {
     const user = userEvent.setup()
     logIn()
     const api = fakeFetch()
     renderApp()
-    await user.click(screen.getByRole('button', { name: /new chat/i }))
-    await user.type(screen.getByLabelText(/phone number or @username/i), 'x')
-    await user.click(screen.getByRole('button', { name: /start chat/i }))
-    expect(await screen.findByRole('alert')).toHaveTextContent(/enter a phone number/i)
+    await openDialog(user)
+    await fill(user, { last: 'Only', phone: 'abc' })
+    expect(await screen.findByText('First name is required')).toBeInTheDocument()
+    expect(screen.getByText(/enter a valid phone number/i)).toBeInTheDocument()
     expect(api.of('checkAccount')).toHaveLength(0)
+  })
+})
+
+describe('search', () => {
+  const dialogs = [
+    {
+      chatId: '1',
+      name: 'Anvar Karimov',
+      type: 'user',
+      username: '@anvar_k',
+      phoneNumber: 998901234567,
+    },
+    {
+      chatId: '2',
+      name: 'Weather Bot',
+      type: 'bot',
+      username: '@weather_helper_bot',
+      phoneNumber: 0,
+    },
+    { chatId: '-3', name: 'Dev Channel', type: 'channel', username: '@dev_news', phoneNumber: 0 },
+    { chatId: '-4', name: 'Dev Chat Group', type: 'supergroup', username: '', phoneNumber: 0 },
+  ]
+  const search = async (user: ReturnType<typeof userEvent.setup>, text: string) =>
+    user.type(screen.getByLabelText('Search chats'), text)
+
+  it('finds users, bots, channels and groups from the account dialogs', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({ getChats: dialogs, getContacts: [] })
+    renderApp()
+    await search(user, 'dev')
+    const results = await screen.findByRole('region', { name: 'Search results' })
+    expect(await within(results).findByText('Dev Channel')).toBeInTheDocument()
+    expect(within(results).getByText('Dev Chat Group')).toBeInTheDocument()
+    expect(within(results).queryByText('Weather Bot')).not.toBeInTheDocument()
+    expect(within(results).getByText('@dev_news · channel')).toBeInTheDocument()
+    expect(within(results).getByText('group')).toBeInTheDocument()
+    expect(within(results).getByText('Global search')).toBeInTheDocument()
+  })
+
+  it('labels bots and opens the picked result as a chat with its type', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({ getChats: dialogs, getContacts: [] })
+    renderApp()
+    await search(user, 'weather')
+    await user.click(await screen.findByText('Weather Bot'))
+    expect(useChats.getState().activeChatId).toBe('2')
+    expect(useChats.getState().chats['2']).toMatchObject({
+      type: 'bot',
+      username: '@weather_helper_bot',
+    })
+    expect(screen.getByLabelText('Search chats')).toHaveValue('')
+  })
+
+  it('matches by phone number digits and username without @', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({ getChats: dialogs, getContacts: [] })
+    renderApp()
+    await search(user, '90123')
+    expect(await screen.findByText('Anvar Karimov')).toBeInTheDocument()
+  })
+
+  it('shows existing app chats under Chats and not again under Global search', async () => {
+    const user = userEvent.setup()
+    logIn()
+    useChats.getState().ensureChat({ chatId: '1', title: 'Anvar Karimov', username: '@anvar_k' })
+    fakeFetch({ getChats: dialogs, getContacts: [] })
+    renderApp()
+    await search(user, 'anvar')
+    const results = await screen.findByRole('region', { name: 'Search results' })
+    expect(within(results).getByText('Chats')).toBeInTheDocument()
+    expect(within(results).getAllByText('Anvar Karimov')).toHaveLength(1)
+    expect(within(results).queryByText('Global search')).not.toBeInTheDocument()
+  })
+
+  it('looks up an unknown @username on demand and opens it', async () => {
+    const user = userEvent.setup()
+    logIn()
+    const api = fakeFetch({
+      getChats: dialogs,
+      getContacts: [],
+      checkAccount: { exist: true, chatId: '93372553', username: '@botfather' },
+    })
+    renderApp()
+    await search(user, '@botfather')
+    await user.click(await screen.findByRole('button', { name: /search @botfather/i }))
+    await waitFor(() => expect(useChats.getState().activeChatId).toBe('93372553'))
+    expect(bodyOf(api.of('checkAccount')[0])).toEqual({ username: '@botfather' })
+  })
+
+  it('does not spend lookups while typing: only on click', async () => {
+    const user = userEvent.setup()
+    logIn()
+    const api = fakeFetch({ getChats: dialogs, getContacts: [] })
+    renderApp()
+    await search(user, '@some_unknown_user')
+    await screen.findByRole('button', { name: /search @some_unknown_user/i })
+    expect(api.of('checkAccount')).toHaveLength(0)
+  })
+
+  it('reports an unknown username', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({
+      getChats: dialogs,
+      getContacts: [],
+      checkAccount: { exist: false, chatId: '' },
+    })
+    renderApp()
+    await search(user, '@nobody_here')
+    await user.click(await screen.findByRole('button', { name: /search @nobody_here/i }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/no telegram user or bot/i)
+    expect(useChats.getState().chats).toEqual({})
+  })
+
+  it('shows an empty state for no matches', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({ getChats: dialogs, getContacts: [] })
+    renderApp()
+    await search(user, 'zzzz')
+    expect(await screen.findByText(/no results for/i)).toBeInTheDocument()
+  })
+
+  it('shows sender names in group chats', async () => {
+    logIn()
+    useChats.getState().ensureChat({ chatId: '-4', title: 'Dev Chat Group', type: 'supergroup' })
+    useChats.getState().addMessage('-4', {
+      id: 'g1',
+      text: 'hello team',
+      direction: 'in',
+      timestamp: 100,
+      status: 'sent',
+      author: 'Dilshod',
+    })
+    useChats.getState().selectChat('-4')
+    fakeFetch()
+    renderApp()
+    expect(await screen.findByText('Dilshod')).toBeInTheDocument()
+    expect(screen.getByText(/group/)).toBeInTheDocument()
   })
 })
 

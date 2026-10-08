@@ -17,5 +17,6 @@ export function applyNotification(body: unknown): boolean {
     direction: 'in',
     timestamp: msg.timestamp,
     status: 'sent',
+    author: msg.senderName,
   })
 }

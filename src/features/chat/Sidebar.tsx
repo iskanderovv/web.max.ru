@@ -5,7 +5,8 @@ import { selectSortedChats, useChats } from '@/store/chats'
 import { Avatar } from './Avatar'
 import { ContactsDialog } from './ContactsDialog'
 import { Drawer } from './Drawer'
-import { NewChatDialog } from './NewChatDialog'
+import { NewContactDialog } from './NewContactDialog'
+import { SearchResults } from './SearchResults'
 
 export function Sidebar() {
   const chatMap = useChats((s) => s.chats)
@@ -15,12 +16,8 @@ export function Sidebar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [query, setQuery] = useState('')
 
-  const chats = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return selectSortedChats({ chats: chatMap }).filter(
-      (c) => !q || c.title.toLowerCase().includes(q),
-    )
-  }, [chatMap, query])
+  const chats = useMemo(() => selectSortedChats({ chats: chatMap }), [chatMap])
+  const searching = query.trim().length > 0
 
   return (
     <aside
@@ -49,57 +46,61 @@ export function Sidebar() {
         </label>
       </header>
 
-      <ul className="tg-scroll flex-1 overflow-y-auto px-2">
-        {chats.length === 0 && (
-          <li className="p-6 text-center text-sm text-tg-secondary">
-            {query ? 'No chats found' : 'No chats yet. Tap the pencil to start one.'}
-          </li>
-        )}
-        {chats.map((chat) => {
-          const last = chat.messages.at(-1)
-          const active = chat.chatId === activeChatId
-          return (
-            <li key={chat.chatId}>
-              <button
-                onClick={() => useChats.getState().selectChat(chat.chatId)}
-                className={`flex w-full items-center gap-3 rounded-xl p-2 text-left ${
-                  active ? 'bg-tg-blue text-white' : 'hover:bg-tg-hover'
-                }`}
-              >
-                <Avatar id={chat.chatId} title={chat.title} url={chat.avatarUrl} />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span className="truncate font-medium">{chat.title}</span>
-                    {last && (
-                      <span
-                        className={`shrink-0 text-xs ${active ? 'text-white/80' : 'text-tg-secondary'}`}
-                      >
-                        {formatListTime(last.timestamp)}
-                      </span>
-                    )}
-                  </span>
-                  <span className="flex items-center justify-between gap-2">
-                    <span
-                      className={`truncate text-[15px] ${active ? 'text-white/90' : 'text-tg-secondary'}`}
-                    >
-                      {last
-                        ? last.direction === 'out'
-                          ? `You: ${last.text}`
-                          : last.text
-                        : 'No messages'}
-                    </span>
-                    {chat.unread > 0 && (
-                      <span className="min-w-6 shrink-0 rounded-full bg-tg-blue px-1.5 py-0.5 text-center text-xs font-medium text-white">
-                        {chat.unread}
-                      </span>
-                    )}
-                  </span>
-                </span>
-              </button>
+      {searching ? (
+        <SearchResults query={query} onDone={() => setQuery('')} />
+      ) : (
+        <ul className="tg-scroll flex-1 overflow-y-auto px-2">
+          {chats.length === 0 && (
+            <li className="p-6 text-center text-sm text-tg-secondary">
+              No chats yet. Tap the pencil to start one.
             </li>
-          )
-        })}
-      </ul>
+          )}
+          {chats.map((chat) => {
+            const last = chat.messages.at(-1)
+            const active = chat.chatId === activeChatId
+            return (
+              <li key={chat.chatId}>
+                <button
+                  onClick={() => useChats.getState().selectChat(chat.chatId)}
+                  className={`flex w-full items-center gap-3 rounded-xl p-2 text-left ${
+                    active ? 'bg-tg-blue text-white' : 'hover:bg-tg-hover'
+                  }`}
+                >
+                  <Avatar id={chat.chatId} title={chat.title} url={chat.avatarUrl} />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="truncate font-medium">{chat.title}</span>
+                      {last && (
+                        <span
+                          className={`shrink-0 text-xs ${active ? 'text-white/80' : 'text-tg-secondary'}`}
+                        >
+                          {formatListTime(last.timestamp)}
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex items-center justify-between gap-2">
+                      <span
+                        className={`truncate text-[15px] ${active ? 'text-white/90' : 'text-tg-secondary'}`}
+                      >
+                        {last
+                          ? last.direction === 'out'
+                            ? `You: ${last.text}`
+                            : last.text
+                          : 'No messages'}
+                      </span>
+                      {chat.unread > 0 && (
+                        <span className="min-w-6 shrink-0 rounded-full bg-tg-blue px-1.5 py-0.5 text-center text-xs font-medium text-white">
+                          {chat.unread}
+                        </span>
+                      )}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
 
       <button
         onClick={() => setCreating(true)}
@@ -122,7 +123,7 @@ export function Sidebar() {
           }}
         />
       )}
-      {creating && <NewChatDialog onClose={() => setCreating(false)} />}
+      {creating && <NewContactDialog onClose={() => setCreating(false)} />}
       {contacts && <ContactsDialog onClose={() => setContacts(false)} />}
     </aside>
   )

@@ -2,7 +2,9 @@ import { ApiError } from './errors'
 import { request } from './client'
 import { z } from 'zod'
 import {
+  addContactSchema,
   avatarSchema,
+  chatsSchema,
   checkAccountSchema,
   contactsSchema,
   parseHistory,
@@ -14,6 +16,7 @@ import {
   settingsSchema,
   stateInstanceSchema,
   type CheckAccountResult,
+  type ChatInfo,
   type Contact,
   type HistoryMessage,
   type Credentials,
@@ -46,6 +49,36 @@ export function createGreenApi(c: Credentials) {
 
     getContacts: (signal?: AbortSignal): Promise<Contact[]> =>
       request(c, 'getContacts', contactsSchema, { signal }),
+
+    /** All dialogs of the account: users, bots, groups, supergroups and channels. */
+    getChats: (signal?: AbortSignal): Promise<ChatInfo[]> =>
+      request(c, 'getChats', chatsSchema, { signal }),
+
+    /**
+     * Adds (or renames) a Telegram contact by its chat id. An "already exists" refusal
+     * is treated as success: the contact is there, which is all the caller needs.
+     */
+    async addContact(
+      chatId: string,
+      firstName: string,
+      lastName?: string,
+      signal?: AbortSignal,
+    ): Promise<void> {
+      try {
+        const res = await request(c, 'addContact', addContactSchema, {
+          method: 'POST',
+          body: { chatId, firstName, ...(lastName ? { lastName } : {}) },
+          signal,
+        })
+        if (res.addContact === false || (res.message && !res.addContact)) {
+          if (/already exists/i.test(res.message ?? '')) return
+          throw new ApiError(res.message || 'Could not add the contact', 200, res)
+        }
+      } catch (e) {
+        if (e instanceof ApiError && /already exists/i.test(e.message)) return
+        throw e
+      }
+    },
 
     async getAvatar(chatId: string, signal?: AbortSignal): Promise<string> {
       const res = await request(c, 'getAvatar', avatarSchema, {

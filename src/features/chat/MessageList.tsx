@@ -2,6 +2,7 @@ import { Check, CheckCheck, ChevronDown, CircleAlert, Clock } from 'lucide-react
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useSendMessage } from '@/hooks/useSendMessage'
 import { canEdit } from '@/lib/messageRules'
+import { isGroupLike } from '@/lib/search'
 import { dayKey, dayLabel, formatTime } from '@/lib/time'
 import type { Chat, ChatMessage } from '@/store/chats'
 
@@ -39,6 +40,11 @@ export function MessageList({
               )}
               <Bubble
                 message={m}
+                showAuthor={
+                  isGroupLike(chat.type) &&
+                  m.direction === 'in' &&
+                  (!prev || prev.direction !== 'in' || prev.author !== m.author || newDay)
+                }
                 grouped={!!prev && !newDay && prev.direction === m.direction}
                 onRetry={() => retry(chat.chatId, m.id, m.text)}
                 onEdit={() => onEdit(m)}
@@ -55,12 +61,14 @@ export function MessageList({
 
 function Bubble({
   message: m,
+  showAuthor,
   grouped,
   onRetry,
   onEdit,
   onDelete,
 }: {
   message: ChatMessage
+  showAuthor: boolean
   grouped: boolean
   onRetry: () => void
   onEdit: () => void
@@ -90,6 +98,9 @@ function Bubble({
           <ChevronDown size={16} />
         </button>
 
+        {showAuthor && m.author && (
+          <span className="block pr-5 text-sm font-medium text-tg-blue">{m.author}</span>
+        )}
         <span className="break-words whitespace-pre-wrap">{m.text}</span>
         <span
           className={`float-right mt-2 ml-3 flex items-center gap-1 text-xs ${

@@ -97,6 +97,8 @@ const historyItemSchema = z.looseObject({
   typeMessage: z.string(),
   textMessage: z.string().optional(),
   statusMessage: z.string().optional(),
+  senderName: z.string().optional(),
+  senderContactName: z.string().optional(),
 })
 
 export interface HistoryMessage {
@@ -106,6 +108,8 @@ export interface HistoryMessage {
   timestamp: number
   /** Outgoing only. */
   delivery?: 'delivered' | 'read'
+  /** Incoming only: sender display name (useful in groups). */
+  author?: string
 }
 
 /** Keeps text messages only; one malformed row must not break the whole history. */
@@ -127,6 +131,7 @@ export function parseHistory(raw: unknown): HistoryMessage[] {
         m.type === 'outgoing' && (m.statusMessage === 'read' || m.statusMessage === 'delivered')
           ? m.statusMessage
           : undefined,
+      author: m.type === 'incoming' ? m.senderContactName || m.senderName || undefined : undefined,
     })
   }
   return out.sort((a, b) => a.timestamp - b.timestamp)
@@ -136,3 +141,23 @@ export function parseHistory(raw: unknown): HistoryMessage[] {
 export const emptyResponseSchema = z.unknown()
 
 export const editMessageSchema = z.object({ idMessage: z.string() })
+
+export const CHAT_TYPES = ['user', 'bot', 'group', 'supergroup', 'channel'] as const
+export type ChatType = (typeof CHAT_TYPES)[number]
+
+export const chatTypeSchema = z.enum(CHAT_TYPES).catch('user')
+
+export const chatInfoSchema = z.looseObject({
+  chatId: z.string(),
+  name: z.string().optional(),
+  type: z.string().optional(),
+  phoneNumber: z.number().optional(),
+  username: z.string().optional(),
+})
+export const chatsSchema = z.array(chatInfoSchema)
+export type ChatInfo = z.infer<typeof chatInfoSchema>
+
+export const addContactSchema = z.looseObject({
+  addContact: z.boolean().optional(),
+  message: z.string().optional(),
+})

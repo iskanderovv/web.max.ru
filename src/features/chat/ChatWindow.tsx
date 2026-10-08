@@ -1,6 +1,7 @@
 import { ArrowLeft, MoreVertical } from 'lucide-react'
 import { useState } from 'react'
 import { useChatSync } from '@/hooks/useChatSync'
+import { typeLabel } from '@/lib/search'
 import { useChats, type Chat, type ChatMessage } from '@/store/chats'
 import { Avatar } from './Avatar'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -44,7 +45,9 @@ function ActiveChat({ chat }: { chat: Chat }) {
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-medium">{chat.title}</h2>
           <p className="truncate text-sm text-tg-secondary">
-            {chat.username && chat.username !== chat.title ? chat.username : 'Telegram'}
+            {[chat.username !== chat.title ? chat.username : '', typeLabel(chat.type)]
+              .filter(Boolean)
+              .join(' · ') || 'Telegram'}
           </p>
         </div>
 

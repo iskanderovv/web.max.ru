@@ -10,6 +10,7 @@ const toChatMessage = (m: HistoryMessage): ChatMessage => ({
   direction: m.direction,
   timestamp: m.timestamp,
   status: m.direction === 'out' ? (m.delivery ?? 'sent') : 'sent',
+  author: m.author,
 })
 
 /** Loads the latest server history into a chat that has no local messages yet. */

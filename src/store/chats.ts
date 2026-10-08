@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import type { ChatType } from '@/api/schemas'
+
 export const MAX_MESSAGES_PER_CHAT = 500
 
 /** `sent`/`delivered` render one check, `read` two. */
@@ -16,12 +18,15 @@ export interface ChatMessage {
   timestamp: number
   status: MessageStatus
   edited?: boolean
+  /** Incoming only: who wrote it (shown in group chats). */
+  author?: string
 }
 
 export interface Chat {
   chatId: string
   title: string
   username?: string
+  type?: ChatType
   messages: ChatMessage[]
   unread: number
   /** Profile photo URL; `''` = none, `undefined` = not looked up yet. */
@@ -34,7 +39,7 @@ export interface Chat {
 interface ChatsState {
   chats: Record<string, Chat>
   activeChatId: string | null
-  ensureChat: (chat: { chatId: string; title: string; username?: string }) => void
+  ensureChat: (chat: { chatId: string; title: string; username?: string; type?: ChatType }) => void
   selectChat: (chatId: string | null) => void
   /** Returns false when a message with the same id already exists. */
   addMessage: (chatId: string, message: ChatMessage) => boolean
@@ -59,7 +64,7 @@ export const useChats = create<ChatsState>()(
       chats: {},
       activeChatId: null,
 
-      ensureChat: ({ chatId, title, username }) =>
+      ensureChat: ({ chatId, title, username, type }) =>
         set((s) => {
           const existing = s.chats[chatId]
           if (existing) {
@@ -67,10 +72,19 @@ export const useChats = create<ChatsState>()(
               ...existing,
               title: title || existing.title,
               username: username ?? existing.username,
+              type: type ?? existing.type,
             }
             return { chats: { ...s.chats, [chatId]: next } }
           }
-          const chat: Chat = { chatId, title, username, messages: [], unread: 0, updatedAt: now() }
+          const chat: Chat = {
+            chatId,
+            title,
+            username,
+            type,
+            messages: [],
+            unread: 0,
+            updatedAt: now(),
+          }
           return { chats: { ...s.chats, [chatId]: chat } }
         }),
 

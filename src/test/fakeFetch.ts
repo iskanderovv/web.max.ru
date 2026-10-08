@@ -22,6 +22,8 @@ export function fakeFetch(handlers: Record<string, Handler | Response | object> 
         )
       })
     }
+    if (method === 'getChats' || method === 'getContacts')
+      return Promise.resolve(new Response('[]'))
     if (method === 'sendTyping') return Promise.resolve(new Response(''))
     if (method === 'getAvatar') {
       return Promise.resolve(new Response(JSON.stringify({ urlAvatar: '' })))
