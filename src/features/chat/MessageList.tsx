@@ -1,10 +1,11 @@
-import { Check, CheckCheck, ChevronDown, CircleAlert, Clock } from 'lucide-react'
+import { ChevronDown, CircleAlert } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useSendMessage } from '@/hooks/useSendMessage'
 import { canEdit } from '@/lib/messageRules'
 import { isGroupLike } from '@/lib/search'
 import { dayKey, dayLabel, formatTime } from '@/lib/time'
 import type { Chat, ChatMessage } from '@/store/chats'
+import { StatusIcon } from './StatusIcon'
 
 export function MessageList({
   chat,
@@ -174,20 +175,16 @@ function MenuItem({
 }
 
 function Status({ message, onRetry }: { message: ChatMessage; onRetry: () => void }) {
-  if (message.status === 'sending') return <Clock size={13} aria-label="Sending" />
-  if (message.status === 'failed') {
-    return (
-      <button
-        type="button"
-        onClick={onRetry}
-        aria-label="Failed to send. Retry"
-        title="Failed to send. Click to retry"
-        className="text-tg-danger"
-      >
-        <CircleAlert size={15} />
-      </button>
-    )
-  }
-  if (message.status === 'read') return <CheckCheck size={16} aria-label="Read" />
-  return <Check size={14} aria-label={message.status === 'delivered' ? 'Delivered' : 'Sent'} />
+  if (message.status !== 'failed') return <StatusIcon status={message.status} />
+  return (
+    <button
+      type="button"
+      onClick={onRetry}
+      aria-label="Failed to send. Retry"
+      title="Failed to send. Click to retry"
+      className="text-tg-danger"
+    >
+      <CircleAlert size={15} />
+    </button>
+  )
 }

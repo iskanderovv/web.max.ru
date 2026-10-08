@@ -1,11 +1,13 @@
 import { Menu, Pencil, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { isGroupLike } from '@/lib/search'
 import { formatListTime } from '@/lib/time'
 import { selectSortedChats, useChats } from '@/store/chats'
 import { Avatar } from './Avatar'
 import { ContactsDialog } from './ContactsDialog'
 import { Drawer } from './Drawer'
 import { NewContactDialog } from './NewContactDialog'
+import { StatusIcon } from './StatusIcon'
 import { SearchResults } from './SearchResults'
 
 export function Sidebar() {
@@ -80,13 +82,32 @@ export function Sidebar() {
                     </span>
                     <span className="flex items-center justify-between gap-2">
                       <span
-                        className={`truncate text-[15px] ${active ? 'text-white/90' : 'text-tg-secondary'}`}
+                        className={`flex min-w-0 items-center gap-1 text-[15px] ${
+                          active ? 'text-white/90' : 'text-tg-secondary'
+                        }`}
                       >
-                        {last
-                          ? last.direction === 'out'
-                            ? `You: ${last.text}`
-                            : last.text
-                          : 'No messages'}
+                        {last?.direction === 'out' && (
+                          <span
+                            className={`shrink-0 ${
+                              active
+                                ? 'text-white'
+                                : last.status === 'failed'
+                                  ? 'text-tg-danger'
+                                  : last.status === 'sending'
+                                    ? ''
+                                    : 'text-tg-out-meta'
+                            }`}
+                          >
+                            <StatusIcon status={last.status} label={false} />
+                          </span>
+                        )}
+                        <span className="truncate">
+                          {last
+                            ? last.direction === 'out' && isGroupLike(chat.type)
+                              ? `You: ${last.text}`
+                              : last.text
+                            : 'No messages'}
+                        </span>
                       </span>
                       {chat.unread > 0 && (
                         <span className="min-w-6 shrink-0 rounded-full bg-tg-blue px-1.5 py-0.5 text-center text-xs font-medium text-white">

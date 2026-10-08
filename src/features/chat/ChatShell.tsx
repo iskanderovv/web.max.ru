@@ -1,5 +1,6 @@
 import { useAvatars } from '@/hooks/useAvatars'
 import { useChatNames } from '@/hooks/useChatNames'
+import { useDeliverySync } from '@/hooks/useDeliverySync'
 import { useNotificationPoller } from '@/hooks/useNotificationPoller'
 import { useSettings } from '@/hooks/useSettings'
 import { ChatWindow } from './ChatWindow'
@@ -10,6 +11,7 @@ export function ChatShell() {
   const settings = useSettings()
   useAvatars()
   useChatNames()
+  useDeliverySync()
   const incomingDisabled = settings.data && settings.data.incomingWebhook !== 'yes'
 
   return (
