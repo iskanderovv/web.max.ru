@@ -3,7 +3,10 @@ import { persist } from 'zustand/middleware'
 
 export const MAX_MESSAGES_PER_CHAT = 500
 
-export type MessageStatus = 'sending' | 'sent' | 'failed'
+/** `sent`/`delivered` render one check, `read` two. */
+export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'failed'
+
+const DELIVERY_RANK = { sent: 0, delivered: 1, read: 2 } as const
 
 export interface ChatMessage {
   id: string
@@ -20,6 +23,9 @@ export interface Chat {
   username?: string
   messages: ChatMessage[]
   unread: number
+  /** Profile photo URL; `''` = none, `undefined` = not looked up yet. */
+  avatarUrl?: string
+  historyLoaded?: boolean
   /** Unix seconds of last activity, for sorting. */
   updatedAt: number
 }
@@ -32,6 +38,13 @@ interface ChatsState {
   /** Returns false when a message with the same id already exists. */
   addMessage: (chatId: string, message: ChatMessage) => boolean
   updateMessage: (chatId: string, id: string, patch: Partial<ChatMessage>) => void
+  deleteChat: (chatId: string) => void
+  clearHistory: (chatId: string) => void
+  setAvatar: (chatId: string, url: string) => void
+  /** Imports server history into an empty chat (never merges into existing messages). */
+  importHistory: (chatId: string, messages: ChatMessage[]) => void
+  /** Raises `sent -> delivered -> read` for known outgoing messages; never downgrades. */
+  applyDelivery: (chatId: string, delivery: Record<string, 'delivered' | 'read'>) => void
   reset: () => void
 }
 
@@ -92,6 +105,59 @@ export const useChats = create<ChatsState>()(
           if (!chat) return s
           const messages = chat.messages.map((m) => (m.id === id ? { ...m, ...patch } : m))
           return { chats: { ...s.chats, [chatId]: { ...chat, messages } } }
+        }),
+
+      deleteChat: (chatId) =>
+        set((s) => {
+          const { [chatId]: _removed, ...rest } = s.chats
+          return { chats: rest, activeChatId: s.activeChatId === chatId ? null : s.activeChatId }
+        }),
+
+      clearHistory: (chatId) =>
+        set((s) => {
+          const chat = s.chats[chatId]
+          if (!chat) return s
+          return { chats: { ...s.chats, [chatId]: { ...chat, messages: [], unread: 0 } } }
+        }),
+
+      setAvatar: (chatId, url) =>
+        set((s) => {
+          const chat = s.chats[chatId]
+          return chat ? { chats: { ...s.chats, [chatId]: { ...chat, avatarUrl: url } } } : s
+        }),
+
+      importHistory: (chatId, messages) =>
+        set((s) => {
+          const chat = s.chats[chatId]
+          if (!chat || chat.messages.length > 0) return s
+          const last = messages.at(-1)
+          return {
+            chats: {
+              ...s.chats,
+              [chatId]: {
+                ...chat,
+                historyLoaded: true,
+                messages: messages.slice(-MAX_MESSAGES_PER_CHAT),
+                updatedAt: last?.timestamp ?? chat.updatedAt,
+              },
+            },
+          }
+        }),
+
+      applyDelivery: (chatId, delivery) =>
+        set((s) => {
+          const chat = s.chats[chatId]
+          if (!chat) return s
+          let changed = false
+          const messages = chat.messages.map((m) => {
+            const next = delivery[m.id]
+            if (m.direction !== 'out' || !next) return m
+            if (m.status !== 'sent' && m.status !== 'delivered' && m.status !== 'read') return m
+            if (DELIVERY_RANK[next] <= DELIVERY_RANK[m.status]) return m
+            changed = true
+            return { ...m, status: next }
+          })
+          return changed ? { chats: { ...s.chats, [chatId]: { ...chat, messages } } } : s
         }),
 
       reset: () => set({ chats: {}, activeChatId: null }),

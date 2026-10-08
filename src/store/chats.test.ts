@@ -77,3 +77,62 @@ describe('chats store', () => {
     expect(useChats.getState().chats['1'].messages[0].status).toBe('failed')
   })
 })
+
+describe('chat management', () => {
+  it('deleteChat removes it and clears the active selection', () => {
+    const s = useChats.getState()
+    s.ensureChat({ chatId: '1', title: 'A' })
+    s.ensureChat({ chatId: '2', title: 'B' })
+    s.selectChat('1')
+    s.deleteChat('1')
+    expect(Object.keys(useChats.getState().chats)).toEqual(['2'])
+    expect(useChats.getState().activeChatId).toBeNull()
+  })
+
+  it('deleteChat keeps the selection when another chat is removed', () => {
+    const s = useChats.getState()
+    s.ensureChat({ chatId: '1', title: 'A' })
+    s.ensureChat({ chatId: '2', title: 'B' })
+    s.selectChat('1')
+    s.deleteChat('2')
+    expect(useChats.getState().activeChatId).toBe('1')
+  })
+
+  it('clearHistory empties messages but keeps the chat', () => {
+    const s = useChats.getState()
+    s.ensureChat({ chatId: '1', title: 'A' })
+    s.addMessage('1', msg('m1'))
+    s.clearHistory('1')
+    const chat = useChats.getState().chats['1']
+    expect(chat.messages).toEqual([])
+    expect(chat.unread).toBe(0)
+  })
+
+  it('importHistory fills only empty chats', () => {
+    const s = useChats.getState()
+    s.ensureChat({ chatId: '1', title: 'A' })
+    s.importHistory('1', [msg('h1', { timestamp: 5 }), msg('h2', { timestamp: 9 })])
+    expect(useChats.getState().chats['1'].messages.map((m) => m.id)).toEqual(['h1', 'h2'])
+    expect(useChats.getState().chats['1'].updatedAt).toBe(9)
+    s.importHistory('1', [msg('h3')])
+    expect(useChats.getState().chats['1'].messages).toHaveLength(2)
+  })
+
+  it('applyDelivery upgrades sent -> delivered -> read and never downgrades', () => {
+    const s = useChats.getState()
+    s.ensureChat({ chatId: '1', title: 'A' })
+    s.addMessage('1', msg('o1', { direction: 'out', status: 'sent' }))
+    s.addMessage('1', msg('o2', { direction: 'out', status: 'sending' }))
+    s.addMessage('1', msg('i1', { direction: 'in' }))
+    const status = (id: string) =>
+      useChats.getState().chats['1'].messages.find((m) => m.id === id)?.status
+    s.applyDelivery('1', { o1: 'delivered', o2: 'read', i1: 'read' })
+    expect(status('o1')).toBe('delivered')
+    expect(status('o2')).toBe('sending')
+    expect(status('i1')).toBe('sent')
+    s.applyDelivery('1', { o1: 'read' })
+    expect(status('o1')).toBe('read')
+    s.applyDelivery('1', { o1: 'delivered' })
+    expect(status('o1')).toBe('read')
+  })
+})

@@ -1,15 +1,17 @@
 import { Menu, Pencil, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { endSession } from '@/lib/session'
 import { formatListTime } from '@/lib/time'
 import { selectSortedChats, useChats } from '@/store/chats'
 import { Avatar } from './Avatar'
+import { ContactsDialog } from './ContactsDialog'
+import { Drawer } from './Drawer'
 import { NewChatDialog } from './NewChatDialog'
 
 export function Sidebar() {
   const chatMap = useChats((s) => s.chats)
   const activeChatId = useChats((s) => s.activeChatId)
   const [creating, setCreating] = useState(false)
+  const [contacts, setContacts] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [query, setQuery] = useState('')
 
@@ -27,26 +29,14 @@ export function Sidebar() {
       }`}
     >
       <header className="flex items-center gap-2 px-3 py-2">
-        <div className="relative">
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Menu"
-            aria-expanded={menuOpen}
-            className="rounded-full p-2.5 text-tg-secondary hover:bg-tg-hover"
-          >
-            <Menu size={22} />
-          </button>
-          {menuOpen && (
-            <div className="absolute top-12 left-0 z-10 w-44 rounded-xl bg-white py-1 shadow-lg ring-1 ring-black/5">
-              <button
-                onClick={endSession}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-tg-hover"
-              >
-                Log out
-              </button>
-            </div>
-          )}
-        </div>
+        <button
+          onClick={() => setMenuOpen(true)}
+          aria-label="Menu"
+          aria-expanded={menuOpen}
+          className="rounded-full p-2.5 text-tg-secondary hover:bg-tg-hover"
+        >
+          <Menu size={22} />
+        </button>
         <label className="flex flex-1 items-center gap-2 rounded-full bg-tg-hover px-3 py-2 focus-within:ring-2 focus-within:ring-tg-blue">
           <Search size={18} className="text-tg-secondary" />
           <input
@@ -76,7 +66,7 @@ export function Sidebar() {
                   active ? 'bg-tg-blue text-white' : 'hover:bg-tg-hover'
                 }`}
               >
-                <Avatar id={chat.chatId} title={chat.title} />
+                <Avatar id={chat.chatId} title={chat.title} url={chat.avatarUrl} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">
                     <span className="truncate font-medium">{chat.title}</span>
@@ -119,7 +109,21 @@ export function Sidebar() {
         <Pencil size={22} />
       </button>
 
+      {menuOpen && (
+        <Drawer
+          onClose={() => setMenuOpen(false)}
+          onNewChat={() => {
+            setMenuOpen(false)
+            setCreating(true)
+          }}
+          onContacts={() => {
+            setMenuOpen(false)
+            setContacts(true)
+          }}
+        />
+      )}
       {creating && <NewChatDialog onClose={() => setCreating(false)} />}
+      {contacts && <ContactsDialog onClose={() => setContacts(false)} />}
     </aside>
   )
 }

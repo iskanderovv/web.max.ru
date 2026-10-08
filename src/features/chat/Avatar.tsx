@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 const GRADIENTS = [
   ['#ff885e', '#ff516a'],
   ['#ffcd6a', '#ffa85c'],
@@ -14,9 +16,36 @@ function hash(s: string) {
   return h
 }
 
-export function Avatar({ id, title, size = 54 }: { id: string; title: string; size?: number }) {
+export function Avatar({
+  id,
+  title,
+  url,
+  size = 54,
+}: {
+  id: string
+  title: string
+  url?: string
+  size?: number
+}) {
+  const [broken, setBroken] = useState(false)
   const [from, to] = GRADIENTS[hash(id) % GRADIENTS.length]
   const initial = title.replace(/^[@+]/, '').charAt(0).toUpperCase() || '?'
+
+  if (url && !broken) {
+    return (
+      <img
+        src={url}
+        alt=""
+        width={size}
+        height={size}
+        referrerPolicy="no-referrer"
+        onError={() => setBroken(true)}
+        className="shrink-0 rounded-full object-cover"
+        style={{ width: size, height: size }}
+      />
+    )
+  }
+
   return (
     <span
       aria-hidden="true"

@@ -247,3 +247,150 @@ describe('receiving', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/incoming messages are disabled/i)
   })
 })
+
+describe('menu, contacts, chat management', () => {
+  it('burger opens the side menu with account info and actions', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({ getSettings: { incomingWebhook: 'yes', wid: '998885880331@c.us' } })
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    const nav = screen.getByRole('navigation', { name: /main menu/i })
+    expect(await within(nav).findByText('+998885880331')).toBeInTheDocument()
+    for (const name of ['New chat', 'Contacts', 'Log out']) {
+      expect(within(nav).getByRole('button', { name })).toBeInTheDocument()
+    }
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('navigation', { name: /main menu/i })).not.toBeInTheDocument()
+  })
+
+  it('contacts list opens a chat with the picked contact', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({
+      getContacts: [
+        { chatId: '1', name: 'Ann', contactName: 'Ann Lee', type: 'user', username: '@ann' },
+        {
+          chatId: '2',
+          name: 'Bob',
+          contactName: 'Bob Roy',
+          type: 'user',
+          phoneNumber: 998901112233,
+        },
+      ],
+    })
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    await user.click(screen.getByRole('button', { name: 'Contacts' }))
+    expect(await screen.findByText('Bob Roy')).toBeInTheDocument()
+    await user.type(screen.getByLabelText('Search contacts'), 'ann')
+    expect(screen.queryByText('Bob Roy')).not.toBeInTheDocument()
+    await user.click(screen.getByText('Ann Lee'))
+    expect(useChats.getState().activeChatId).toBe('1')
+    expect(useChats.getState().chats['1'].title).toBe('@ann')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('shows an error when contacts cannot be loaded', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({ getContacts: () => new Response('{}', { status: 500 }) })
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    await user.click(screen.getByRole('button', { name: 'Contacts' }))
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+  })
+
+  it('deletes a chat after confirmation (and not on cancel)', async () => {
+    const user = userEvent.setup()
+    logIn()
+    useChats.getState().ensureChat({ chatId: '9', title: '@zed_user' })
+    useChats.getState().selectChat('9')
+    fakeFetch()
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Chat actions' }))
+    await user.click(screen.getByRole('menuitem', { name: /delete chat/i }))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(useChats.getState().chats['9']).toBeDefined()
+
+    await user.click(screen.getByRole('button', { name: 'Chat actions' }))
+    await user.click(screen.getByRole('menuitem', { name: /delete chat/i }))
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    expect(useChats.getState().chats['9']).toBeUndefined()
+    expect(screen.getByText(/no chats yet/i)).toBeInTheDocument()
+  })
+
+  it('clears history but keeps the chat', async () => {
+    const user = userEvent.setup()
+    logIn()
+    useChats.getState().ensureChat({ chatId: '9', title: '@zed_user' })
+    useChats
+      .getState()
+      .addMessage('9', { id: 'm', text: 'old', direction: 'in', timestamp: 1, status: 'sent' })
+    useChats.getState().selectChat('9')
+    fakeFetch()
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Chat actions' }))
+    await user.click(screen.getByRole('menuitem', { name: /clear history/i }))
+    await user.click(screen.getByRole('button', { name: 'Clear' }))
+    expect(useChats.getState().chats['9'].messages).toEqual([])
+    expect(screen.getByText(/no messages here yet/i)).toBeInTheDocument()
+  })
+})
+
+describe('delivery marks and history', () => {
+  it('shows one check for sent and two for read', async () => {
+    logIn()
+    useChats.getState().ensureChat({ chatId: '9', title: '@zed_user' })
+    const add = (id: string, status: 'sent' | 'read') =>
+      useChats
+        .getState()
+        .addMessage('9', { id, text: id, direction: 'out', timestamp: 100, status })
+    add('a', 'sent')
+    add('b', 'read')
+    useChats.getState().selectChat('9')
+    fakeFetch()
+    renderApp()
+    expect(screen.getAllByLabelText('Sent')).toHaveLength(1)
+    expect(screen.getAllByLabelText('Read')).toHaveLength(1)
+  })
+
+  it('imports server history when a fresh chat is opened', async () => {
+    logIn()
+    useChats.getState().ensureChat({ chatId: '9', title: '@zed_user' })
+    useChats.getState().selectChat('9')
+    fakeFetch({
+      getChatHistory: [
+        {
+          type: 'incoming',
+          idMessage: 'h1',
+          timestamp: 10,
+          typeMessage: 'textMessage',
+          textMessage: 'earlier',
+        },
+        {
+          type: 'outgoing',
+          idMessage: 'h2',
+          timestamp: 20,
+          typeMessage: 'textMessage',
+          textMessage: 'seen',
+          statusMessage: 'read',
+        },
+      ],
+    })
+    renderApp()
+    const list = await screen.findByRole('list', { name: 'Messages' })
+    expect(within(list).getByText('earlier')).toBeInTheDocument()
+    expect(within(list).getByLabelText('Read')).toBeInTheDocument()
+  })
+
+  it('uses the profile photo when one exists', async () => {
+    logIn()
+    useChats.getState().ensureChat({ chatId: '9', title: '@zed_user' })
+    fakeFetch({ getAvatar: { urlAvatar: 'https://img.test/a.jpg' } })
+    const { container } = renderApp()
+    await waitFor(() =>
+      expect(container.querySelector('img')).toHaveAttribute('src', 'https://img.test/a.jpg'),
+    )
+  })
+})

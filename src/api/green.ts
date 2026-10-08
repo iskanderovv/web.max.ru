@@ -1,13 +1,19 @@
 import { ApiError } from './errors'
 import { request } from './client'
+import { z } from 'zod'
 import {
+  avatarSchema,
   checkAccountSchema,
+  contactsSchema,
+  parseHistory,
   deleteNotificationSchema,
   notificationSchema,
   sendMessageSchema,
   settingsSchema,
   stateInstanceSchema,
   type CheckAccountResult,
+  type Contact,
+  type HistoryMessage,
   type Credentials,
   type Notification,
 } from './schemas'
@@ -34,6 +40,31 @@ export function createGreenApi(c: Credentials) {
         throw new ApiError('Too many lookups, pause for a while', 200, res)
       }
       return { exist: res.exist, chatId: res.chatId, username: res.username }
+    },
+
+    getContacts: (signal?: AbortSignal): Promise<Contact[]> =>
+      request(c, 'getContacts', contactsSchema, { signal }),
+
+    async getAvatar(chatId: string, signal?: AbortSignal): Promise<string> {
+      const res = await request(c, 'getAvatar', avatarSchema, {
+        method: 'POST',
+        body: { chatId },
+        signal,
+      })
+      return res.urlAvatar ?? ''
+    },
+
+    async getChatHistory(
+      chatId: string,
+      count = 30,
+      signal?: AbortSignal,
+    ): Promise<HistoryMessage[]> {
+      const raw = await request(c, 'getChatHistory', z.array(z.unknown()), {
+        method: 'POST',
+        body: { chatId, count },
+        signal,
+      })
+      return parseHistory(raw)
     },
 
     sendMessage: (chatId: string, message: string, signal?: AbortSignal) =>

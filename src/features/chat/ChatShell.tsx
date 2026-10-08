@@ -1,17 +1,13 @@
-import { useQuery } from '@tanstack/react-query'
-import { useGreenApi } from '@/hooks/useGreenApi'
+import { useAvatars } from '@/hooks/useAvatars'
 import { useNotificationPoller } from '@/hooks/useNotificationPoller'
+import { useSettings } from '@/hooks/useSettings'
 import { ChatWindow } from './ChatWindow'
 import { Sidebar } from './Sidebar'
 
 export function ChatShell() {
-  const api = useGreenApi()
   const online = useNotificationPoller()
-  const settings = useQuery({
-    queryKey: ['settings'],
-    queryFn: ({ signal }) => api.getSettings(signal),
-    staleTime: Infinity,
-  })
+  const settings = useSettings()
+  useAvatars()
   const incomingDisabled = settings.data && settings.data.incomingWebhook !== 'yes'
 
   return (

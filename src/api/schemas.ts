@@ -76,3 +76,58 @@ export function parseIncomingText(body: unknown): IncomingText | null {
     timestamp: r.data.timestamp,
   }
 }
+
+export const contactSchema = z.looseObject({
+  chatId: z.string(),
+  name: z.string().optional(),
+  contactName: z.string().optional(),
+  type: z.string().optional(),
+  phoneNumber: z.number().optional(),
+  username: z.string().optional(),
+})
+export const contactsSchema = z.array(contactSchema)
+export type Contact = z.infer<typeof contactSchema>
+
+export const avatarSchema = z.looseObject({ urlAvatar: z.string().optional() })
+
+const historyItemSchema = z.looseObject({
+  type: z.enum(['incoming', 'outgoing']),
+  idMessage: z.string(),
+  timestamp: z.number(),
+  typeMessage: z.string(),
+  textMessage: z.string().optional(),
+  statusMessage: z.string().optional(),
+})
+
+export interface HistoryMessage {
+  id: string
+  direction: 'in' | 'out'
+  text: string
+  timestamp: number
+  /** Outgoing only. */
+  delivery?: 'delivered' | 'read'
+}
+
+/** Keeps text messages only; one malformed row must not break the whole history. */
+export function parseHistory(raw: unknown): HistoryMessage[] {
+  if (!Array.isArray(raw)) return []
+  const out: HistoryMessage[] = []
+  for (const row of raw) {
+    const r = historyItemSchema.safeParse(row)
+    if (!r.success || r.data.typeMessage !== 'textMessage' || r.data.textMessage === undefined) {
+      continue
+    }
+    const { data: m } = r
+    out.push({
+      id: m.idMessage,
+      direction: m.type === 'outgoing' ? 'out' : 'in',
+      text: m.textMessage ?? '',
+      timestamp: m.timestamp,
+      delivery:
+        m.type === 'outgoing' && (m.statusMessage === 'read' || m.statusMessage === 'delivered')
+          ? m.statusMessage
+          : undefined,
+    })
+  }
+  return out.sort((a, b) => a.timestamp - b.timestamp)
+}

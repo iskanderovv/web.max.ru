@@ -1,4 +1,4 @@
-import { Check, CircleAlert, Clock } from 'lucide-react'
+import { Check, CheckCheck, CircleAlert, Clock } from 'lucide-react'
 import { Fragment, useEffect, useRef } from 'react'
 import { useSendMessage } from '@/hooks/useSendMessage'
 import { dayKey, dayLabel, formatTime } from '@/lib/time'
@@ -88,5 +88,6 @@ function Status({ message, onRetry }: { message: ChatMessage; onRetry: () => voi
       </button>
     )
   }
-  return <Check size={14} aria-label="Sent" />
+  if (message.status === 'read') return <CheckCheck size={16} aria-label="Read" />
+  return <Check size={14} aria-label={message.status === 'delivered' ? 'Delivered' : 'Sent'} />
 }

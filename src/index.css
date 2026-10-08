@@ -41,3 +41,26 @@ body {
   background: rgb(0 0 0 / 0.2);
   border-radius: 3px;
 }
+
+@keyframes tg-slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes tg-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.tg-drawer {
+  animation: tg-slide-in 0.2s ease-out;
+}
+.tg-backdrop {
+  animation: tg-fade-in 0.2s ease-out;
+}

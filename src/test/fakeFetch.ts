@@ -22,6 +22,10 @@ export function fakeFetch(handlers: Record<string, Handler | Response | object> 
         )
       })
     }
+    if (method === 'getAvatar') {
+      return Promise.resolve(new Response(JSON.stringify({ urlAvatar: '' })))
+    }
+    if (method === 'getChatHistory') return Promise.resolve(new Response('[]'))
     if (method === 'getSettings') {
       return Promise.resolve(new Response(JSON.stringify({ incomingWebhook: 'yes' })))
     }
