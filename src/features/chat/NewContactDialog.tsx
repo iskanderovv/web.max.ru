@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useGreenApi } from '@/hooks/useGreenApi'
 import { parseRecipient } from '@/lib/recipient'
 import { useChats } from '@/store/chats'
-import { Avatar } from './Avatar'
 import { Modal } from './Modal'
 
 const schema = z.object({
@@ -30,13 +29,11 @@ export function NewContactDialog({ onClose }: { onClose: () => void }) {
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors },
   } = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { firstName: '', lastName: '', phone: '' },
   })
-  const [first, last] = useWatch({ control, name: ['firstName', 'lastName'] })
 
   const create = useMutation({
     mutationFn: async (v: Values) => {
@@ -59,8 +56,6 @@ export function NewContactDialog({ onClose }: { onClose: () => void }) {
     },
   })
 
-  const preview = [first, last].filter(Boolean).join(' ').trim()
-
   return (
     <Modal title="New Contact" onClose={onClose}>
       <form
@@ -68,25 +63,22 @@ export function NewContactDialog({ onClose }: { onClose: () => void }) {
         noValidate
         className="space-y-4 px-5 pt-2 pb-5"
       >
-        <div className="flex items-center gap-4">
-          <Avatar id={preview || 'new'} title={preview || '?'} size={72} />
-          <div className="flex-1 space-y-2">
-            <input
-              {...register('firstName')}
-              autoFocus
-              autoComplete="off"
-              placeholder="First name (required)"
-              aria-label="First name"
-              className={fieldCls}
-            />
-            <input
-              {...register('lastName')}
-              autoComplete="off"
-              placeholder="Last name (optional)"
-              aria-label="Last name"
-              className={fieldCls}
-            />
-          </div>
+        <div className="space-y-2">
+          <input
+            {...register('firstName')}
+            autoFocus
+            autoComplete="off"
+            placeholder="First name (required)"
+            aria-label="First name"
+            className={fieldCls}
+          />
+          <input
+            {...register('lastName')}
+            autoComplete="off"
+            placeholder="Last name (optional)"
+            aria-label="Last name"
+            className={fieldCls}
+          />
         </div>
         {errors.firstName && <p className="text-sm text-tg-danger">{errors.firstName.message}</p>}
 

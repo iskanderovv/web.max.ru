@@ -38,7 +38,7 @@ export function ContactsDialog({ onClose }: { onClose: () => void }) {
 
   function open(c: Contact) {
     const { ensureChat, selectChat } = useChats.getState()
-    ensureChat({ chatId: c.chatId, title: c.username || displayName(c), username: c.username })
+    ensureChat({ chatId: c.chatId, title: displayName(c), username: c.username })
     selectChat(c.chatId)
     onClose()
   }

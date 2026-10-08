@@ -1,4 +1,5 @@
 import { useAvatars } from '@/hooks/useAvatars'
+import { useChatNames } from '@/hooks/useChatNames'
 import { useNotificationPoller } from '@/hooks/useNotificationPoller'
 import { useSettings } from '@/hooks/useSettings'
 import { ChatWindow } from './ChatWindow'
@@ -8,6 +9,7 @@ export function ChatShell() {
   const online = useNotificationPoller()
   const settings = useSettings()
   useAvatars()
+  useChatNames()
   const incomingDisabled = settings.data && settings.data.incomingWebhook !== 'yes'
 
   return (

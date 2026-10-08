@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useMemo } from 'react'
 import { useGreenApi } from '@/hooks/useGreenApi'
+import { realNameOf } from '@/lib/names'
 import {
   buildGlobalHits,
   filterAppChats,
@@ -62,13 +63,15 @@ export function SearchResults({ query, onDone }: { query: string; onDone: () => 
       if (!res.exist || !res.chatId) {
         throw new Error('No Telegram user or bot with this username.')
       }
-      return { res, username }
+      // The username lookup carries no display name; fetch it (best effort).
+      const name = realNameOf(await api.getContactInfo(res.chatId).catch(() => undefined))
+      return { res, username, name }
     },
-    onSuccess: ({ res, username }) =>
+    onSuccess: ({ res, username, name }) =>
       open(
         {
           chatId: res.chatId,
-          title: res.username || username,
+          title: name || res.username || username,
           username: res.username || username,
           type: 'user',
         },

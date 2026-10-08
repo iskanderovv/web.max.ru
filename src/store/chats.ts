@@ -32,6 +32,8 @@ export interface Chat {
   /** Profile photo URL; `''` = none, `undefined` = not looked up yet. */
   avatarUrl?: string
   historyLoaded?: boolean
+  /** The real name lookup (for handle-like titles) was already attempted. */
+  titleChecked?: boolean
   /** Unix seconds of last activity, for sorting. */
   updatedAt: number
 }
@@ -46,6 +48,8 @@ interface ChatsState {
   updateMessage: (chatId: string, id: string, patch: Partial<ChatMessage>) => void
   deleteMessage: (chatId: string, id: string) => void
   editMessageText: (chatId: string, id: string, text: string) => void
+  /** Replaces a handle-like title with the real name (if any) and stops further lookups. */
+  resolveTitle: (chatId: string, title?: string) => void
   deleteChat: (chatId: string) => void
   clearHistory: (chatId: string) => void
   setAvatar: (chatId: string, url: string) => void
@@ -140,6 +144,14 @@ export const useChats = create<ChatsState>()(
             m.id === id ? { ...m, text, edited: true } : m,
           )
           return { chats: { ...s.chats, [chatId]: { ...chat, messages } } }
+        }),
+
+      resolveTitle: (chatId, title) =>
+        set((s) => {
+          const chat = s.chats[chatId]
+          if (!chat) return s
+          const next = { ...chat, titleChecked: true, ...(title ? { title } : {}) }
+          return { chats: { ...s.chats, [chatId]: next } }
         }),
 
       deleteChat: (chatId) =>
