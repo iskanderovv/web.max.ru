@@ -809,3 +809,58 @@ describe('presence', () => {
     expect(await screen.findByText('@zed_user')).toBeInTheDocument()
   })
 })
+
+describe('contacts presence', () => {
+  const NOWS = () => Math.floor(Date.now() / 1000)
+
+  it('shows online / last seen under contact names instead of username and phone', async () => {
+    const user = userEvent.setup()
+    logIn()
+    const api = fakeFetch({
+      getContacts: [
+        {
+          chatId: '1',
+          contactName: 'Ann Lee',
+          type: 'user',
+          username: '@ann',
+          phoneNumber: 998901112233,
+        },
+        { chatId: '2', contactName: 'Bob Roy', type: 'user', username: '@bob' },
+        { chatId: '3', contactName: 'Cid Poe', type: 'user' },
+      ],
+      getContactInfo: (_url, init) => {
+        const { chatId } = JSON.parse(String(init?.body))
+        const lastSeen = chatId === '1' ? NOWS() - 5 : chatId === '2' ? 0 : NOWS() - 3 * 86_400
+        return new Response(JSON.stringify({ lastSeen }))
+      },
+    })
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    await user.click(screen.getByRole('button', { name: 'Contacts' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Contacts' })
+    expect(await within(dialog).findByText('online')).toBeInTheDocument()
+    expect(await within(dialog).findByText('last seen recently')).toBeInTheDocument()
+    expect(await within(dialog).findByText(/^last seen [A-Z][a-z]{2} \d{1,2}$/)).toBeInTheDocument()
+    expect(within(dialog).queryByText(/@ann|@bob|998901112233/)).not.toBeInTheDocument()
+    expect(
+      api
+        .of('getContactInfo')
+        .map((c) => bodyOf(c).chatId)
+        .sort(),
+    ).toEqual(['1', '2', '3'])
+  })
+
+  it('shows a neutral status when a lookup fails', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({
+      getContacts: [{ chatId: '1', contactName: 'Ann Lee', type: 'user' }],
+      getContactInfo: () => new Response('{}', { status: 500 }),
+    })
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    await user.click(screen.getByRole('button', { name: 'Contacts' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Contacts' })
+    expect(await within(dialog).findByText('last seen recently')).toBeInTheDocument()
+  })
+})

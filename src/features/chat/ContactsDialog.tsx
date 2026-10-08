@@ -2,7 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { Contact } from '@/api/schemas'
+import { useContactPresence } from '@/hooks/useContactPresence'
 import { useGreenApi } from '@/hooks/useGreenApi'
+import { useVisible } from '@/hooks/useVisible'
+import { isOnline } from '@/lib/presence'
 import { useChats } from '@/store/chats'
 import { Avatar } from './Avatar'
 import { Modal } from './Modal'
@@ -72,25 +75,34 @@ export function ContactsDialog({ onClose }: { onClose: () => void }) {
         )}
         <ul>
           {list.map((c) => (
-            <li key={c.chatId}>
-              <button
-                onClick={() => open(c)}
-                className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-tg-hover"
-              >
-                <Avatar id={c.chatId} title={displayName(c)} size={44} />
-                <span className="min-w-0">
-                  <span className="block truncate font-medium">{displayName(c)}</span>
-                  <span className="block truncate text-sm text-tg-secondary">
-                    {[c.username, c.phoneNumber ? `+${c.phoneNumber}` : '']
-                      .filter(Boolean)
-                      .join(' · ') || 'Telegram'}
-                  </span>
-                </span>
-              </button>
-            </li>
+            <ContactRow key={c.chatId} contact={c} onOpen={() => open(c)} />
           ))}
         </ul>
       </div>
     </Modal>
+  )
+}
+
+function ContactRow({ contact: c, onOpen }: { contact: Contact; onOpen: () => void }) {
+  const { ref, visible } = useVisible<HTMLLIElement>()
+  const { text, failed } = useContactPresence(c.chatId, visible)
+
+  return (
+    <li ref={ref}>
+      <button
+        onClick={onOpen}
+        className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-tg-hover"
+      >
+        <Avatar id={c.chatId} title={displayName(c)} size={44} />
+        <span className="min-w-0">
+          <span className="block truncate font-medium">{displayName(c)}</span>
+          <span
+            className={`block truncate text-sm ${text && isOnline(text) ? 'text-tg-blue' : 'text-tg-secondary'}`}
+          >
+            {text ?? (failed ? 'last seen recently' : '…')}
+          </span>
+        </span>
+      </button>
+    </li>
   )
 }
