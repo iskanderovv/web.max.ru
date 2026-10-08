@@ -20,6 +20,10 @@
   --tg-warn-text: #78350f;
   --tg-ring: rgb(0 0 0 / 0.06);
   --tg-scroll: rgb(0 0 0 / 0.2);
+  --wall-a: #dbe6c5;
+  --wall-b: #b9cf9f;
+  --wall-hi: rgb(255 255 255 / 0.35);
+  --wall-lo: rgb(110 150 90 / 0.25);
 }
 
 :root[data-theme='dark'] {
@@ -38,6 +42,10 @@
   --tg-warn-text: #fcd34d;
   --tg-ring: rgb(255 255 255 / 0.1);
   --tg-scroll: rgb(255 255 255 / 0.25);
+  --wall-a: #16222d;
+  --wall-b: #0b1219;
+  --wall-hi: rgb(255 255 255 / 0.04);
+  --wall-lo: rgb(60 100 140 / 0.18);
 }
 
 @theme inline {
@@ -71,43 +79,12 @@ body {
   font-family: var(--font-sans);
 }
 
-/*
- * Chat wallpaper: two stacked gradient layers cross-faded with opacity. (Animating gradient
- * colors via custom properties restarts on every descendant and visibly flickers.)
- */
 .tg-wallpaper {
-  position: relative;
-  isolation: isolate;
-}
-.tg-wallpaper::before,
-.tg-wallpaper::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-.tg-wallpaper::before {
-  background-color: #b9cf9f;
+  background-color: var(--wall-b);
   background-image:
-    radial-gradient(circle at 20% 15%, rgb(255 255 255 / 0.35), transparent 40%),
-    radial-gradient(circle at 80% 85%, rgb(110 150 90 / 0.25), transparent 45%),
-    linear-gradient(160deg, #dbe6c5 0%, #b9cf9f 100%);
-}
-.tg-wallpaper::after {
-  opacity: 0;
-  background-color: #0b1219;
-  background-image:
-    radial-gradient(circle at 20% 15%, rgb(255 255 255 / 0.04), transparent 40%),
-    radial-gradient(circle at 80% 85%, rgb(60 100 140 / 0.18), transparent 45%),
-    linear-gradient(160deg, #16222d 0%, #0b1219 100%);
-}
-:root[data-theme='dark'] .tg-wallpaper::before {
-  opacity: 0;
-}
-:root[data-theme='dark'] .tg-wallpaper::after {
-  opacity: 1;
+    radial-gradient(circle at 20% 15%, var(--wall-hi), transparent 40%),
+    radial-gradient(circle at 80% 85%, var(--wall-lo), transparent 45%),
+    linear-gradient(160deg, var(--wall-a) 0%, var(--wall-b) 100%);
 }
 
 .tg-scroll::-webkit-scrollbar {
@@ -118,28 +95,14 @@ body {
   border-radius: 3px;
 }
 
-/* Added for ~350 ms around a toggle so the whole UI cross-fades instead of snapping. */
-.theme-transition,
-.theme-transition *,
-.theme-transition *::before,
-.theme-transition *::after {
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease,
-    border-color 0.3s ease,
-    fill 0.3s ease,
-    stroke 0.3s ease,
-    box-shadow 0.3s ease,
-    opacity 0.3s ease !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .theme-transition,
-  .theme-transition *,
-  .theme-transition *::before,
-  .theme-transition *::after {
-    transition: none !important;
-  }
+/*
+ * Theme switch is a single cross-fade of the whole page (View Transitions API), not per-element
+ * CSS transitions: inherited properties such as `color` restart on every descendant and flicker.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.3s;
+  animation-timing-function: ease;
 }
 
 @keyframes tg-slide-in {

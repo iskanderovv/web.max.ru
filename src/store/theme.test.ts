@@ -1,17 +1,27 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { THEME_FADE_MS, THEME_STORAGE_KEY, applyTheme, systemTheme, useTheme } from './theme'
+import { THEME_STORAGE_KEY, applyTheme, systemTheme, useTheme } from './theme'
 
 const root = document.documentElement
+type VT = { startViewTransition?: (cb: () => void) => unknown }
+const doc = document as unknown as VT
+
+function mockViewTransition() {
+  const start = vi.fn((cb: () => void) => {
+    cb()
+    return { finished: Promise.resolve() }
+  })
+  doc.startViewTransition = start
+  return start
+}
 
 beforeEach(() => {
-  vi.useFakeTimers()
   localStorage.clear()
   root.removeAttribute('data-theme')
-  root.classList.remove('theme-transition')
+  delete doc.startViewTransition
   useTheme.setState({ theme: 'light' })
 })
 afterEach(() => {
-  vi.useRealTimers()
+  delete doc.startViewTransition
   vi.unstubAllGlobals()
 })
 
@@ -25,34 +35,43 @@ describe('theme', () => {
     expect(root.dataset.theme).toBe('light')
   })
 
-  it('cross-fades: transition class is on right after toggle and removed after the fade', () => {
+  it('animates through a single view transition and changes the theme inside it', () => {
+    const start = mockViewTransition()
     useTheme.getState().toggle()
-    expect(root).toHaveClass('theme-transition')
-    vi.advanceTimersByTime(THEME_FADE_MS - 1)
-    expect(root).toHaveClass('theme-transition')
-    vi.advanceTimersByTime(2)
-    expect(root).not.toHaveClass('theme-transition')
-  })
-
-  it('rapid toggles keep one fade window', () => {
-    useTheme.getState().toggle()
-    vi.advanceTimersByTime(200)
-    useTheme.getState().toggle()
-    vi.advanceTimersByTime(200)
-    expect(root).toHaveClass('theme-transition')
-    vi.advanceTimersByTime(200)
-    expect(root).not.toHaveClass('theme-transition')
-  })
-
-  it('applyTheme without animation does not add the transition class', () => {
-    applyTheme('dark')
+    expect(start).toHaveBeenCalledTimes(1)
     expect(root.dataset.theme).toBe('dark')
-    expect(root).not.toHaveClass('theme-transition')
+  })
+
+  it('does not put per-element transition classes on the root', () => {
+    mockViewTransition()
+    useTheme.getState().toggle()
+    expect(root.className).toBe('')
+  })
+
+  it('switches instantly where View Transitions are unsupported', () => {
+    useTheme.getState().toggle()
+    expect(root.dataset.theme).toBe('dark')
+  })
+
+  it('switches instantly for users who prefer reduced motion', () => {
+    const start = mockViewTransition()
+    vi.stubGlobal('matchMedia', (q: string) => ({ matches: q.includes('reduce') }))
+    applyTheme('dark', true)
+    expect(start).not.toHaveBeenCalled()
+    expect(root.dataset.theme).toBe('dark')
+  })
+
+  it('applyTheme without animation never starts a transition (initial load)', () => {
+    const start = mockViewTransition()
+    applyTheme('dark')
+    expect(start).not.toHaveBeenCalled()
+    expect(root.dataset.theme).toBe('dark')
   })
 
   it('setTheme to the current theme is a no-op', () => {
+    const start = mockViewTransition()
     useTheme.getState().setTheme('light')
-    expect(root).not.toHaveClass('theme-transition')
+    expect(start).not.toHaveBeenCalled()
   })
 
   it('follows the system preference by default', () => {

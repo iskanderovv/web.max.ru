@@ -4,24 +4,30 @@ import { persist } from 'zustand/middleware'
 export type Theme = 'light' | 'dark'
 
 export const THEME_STORAGE_KEY = 'tg-chat-theme'
-export const THEME_FADE_MS = 350
 
 export const systemTheme = (): Theme =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
     ? 'dark'
     : 'light'
 
-let fadeTimer: ReturnType<typeof setTimeout> | undefined
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
-/** Sets `<html data-theme>`; with `animate` the colors cross-fade instead of snapping. */
+/**
+ * Sets `<html data-theme>`. With `animate`, the browser cross-fades the old and new page
+ * snapshots (View Transitions); browsers without it, or users who prefer reduced motion,
+ * get an instant switch.
+ */
 export function applyTheme(theme: Theme, animate = false) {
   const root = document.documentElement
-  if (animate) {
-    root.classList.add('theme-transition')
-    clearTimeout(fadeTimer)
-    fadeTimer = setTimeout(() => root.classList.remove('theme-transition'), THEME_FADE_MS)
+  const set = () => {
+    root.dataset.theme = theme
   }
-  root.dataset.theme = theme
+  if (animate && !prefersReducedMotion() && typeof document.startViewTransition === 'function') {
+    document.startViewTransition(set)
+    return
+  }
+  set()
 }
 
 interface ThemeState {
