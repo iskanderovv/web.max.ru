@@ -1,0 +1,72 @@
+import type { ZodType } from 'zod'
+import { ApiError, NetworkError, ValidationError, isAbortError } from './errors'
+import type { Credentials } from './schemas'
+
+export interface RequestOptions {
+  method?: 'GET' | 'POST' | 'DELETE'
+  body?: unknown
+  query?: Record<string, string | number>
+  signal?: AbortSignal
+}
+
+/** Builds `{apiUrl}/waInstance{id}/{method}/{token}[/extra]`. */
+export function buildUrl(
+  c: Credentials,
+  method: string,
+  extra?: string | number,
+  query?: RequestOptions['query'],
+) {
+  const base = `${c.apiUrl.replace(/\/+$/, '')}/waInstance${c.idInstance}/${method}/${c.apiTokenInstance}`
+  const url = extra === undefined ? base : `${base}/${extra}`
+  if (!query) return url
+  const qs = new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)]))
+  return `${url}?${qs}`
+}
+
+export async function request<T>(
+  c: Credentials,
+  method: string,
+  schema: ZodType<T>,
+  opts: RequestOptions & { extra?: string | number } = {},
+): Promise<T> {
+  const url = buildUrl(c, method, opts.extra, opts.query)
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: opts.method ?? 'GET',
+      headers: opts.body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+      signal: opts.signal,
+    })
+  } catch (e) {
+    if (isAbortError(e)) throw e
+    throw new NetworkError('Network error', { cause: e })
+  }
+
+  const text = await res.text()
+  let json: unknown = null
+  if (text) {
+    try {
+      json = JSON.parse(text)
+    } catch {
+      json = text
+    }
+  }
+
+  if (!res.ok) throw new ApiError(httpMessage(res.status, json), res.status, json)
+
+  const parsed = schema.safeParse(json)
+  if (!parsed.success) throw new ValidationError('Unexpected API response', parsed.error.issues)
+  return parsed.data
+}
+
+function httpMessage(status: number, body: unknown) {
+  if (status === 401) return 'Invalid idInstance or apiTokenInstance'
+  if (status === 429) return 'Too many requests, try again later'
+  if (status === 469) return 'Telegram rate limit reached, try again in a few hours'
+  const detail =
+    body && typeof body === 'object' && 'message' in body
+      ? String((body as { message: unknown }).message)
+      : ''
+  return detail || `Request failed (${status})`
+}
