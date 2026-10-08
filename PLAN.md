@@ -73,7 +73,7 @@ Qarorlar:
 
 Har qadam oxirida: `tsc --noEmit`, lint, test yashil + alohida commit.
 
-### Qadam 0: Spike (≈1-2 soat)
+### Qadam 0: Spike (BAJARILDI, 2026-10-08) (≈1-2 soat)
 
 - Credentials olish, `curl` bilan 4 metodni qo'lda sinash.
 - Brauzer `fetch` (CORS) tekshiruvi → R1 qarori: to'g'ridan-to'g'ri yoki proxy.
@@ -161,3 +161,11 @@ Har qadam oxirida: `tsc --noEmit`, lint, test yashil + alohida commit.
 - Foydalanuvchi matni faqat React orqali render (`dangerouslySetInnerHTML` yo'q).
 - Conventional Commits, kichik atomar commitlar.
 - Har qadam tugagach reja belgilari (`[x]`) yangilanadi.
+
+## 9. Spike natijalari (2026-10-08)
+
+- **R1 CORS: yopildi.** `access-control-allow-origin: *`, metodlar `GET, POST, OPTIONS, DELETE`, header `Content-Type` ruxsat. Proxy kerak emas, brauzerdan to'g'ridan-to'g'ri chaqiramiz.
+- **R2 apiUrl:** `https://4100.api.green-api.com` (instance raqamidan: `4100`). Login formasida maydon sifatida qoladi.
+- **R3:** instance `authorized`, `typeInstance: "telegram"`.
+- **Topilma:** `incomingWebhook` default `"no"`, shu holatda kiruvchi xabar navbatga tushmaydi. `setSettings {incomingWebhook:"yes"}` yuborildi (`saveSettings:true`); GREEN-API bo'yicha qo'llanishi bir necha daqiqa olishi mumkin. README'ga qo'lda sozlash yo'riqnomasini yozish kerak. Ilova login'da `getSettings` o'qib, o'chiq bo'lsa ogohlantiradi.
+- **Bo'sh navbat:** `receiveNotification` bo'sh bo'lsa HTTP 200 va tana `null`. Klient `null`ni bo'sh deb qabul qilishi shart.
