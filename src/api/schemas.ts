@@ -14,7 +14,6 @@ export const settingsSchema = z.looseObject({
   outgoingWebhook: z.string().optional(),
 })
 
-/** `exist` is optional: a 200 rate-limit reply (`retryAfter`) carries no `exist`. */
 export const checkAccountSchema = z.looseObject({
   exist: z.boolean().optional(),
   chatId: z.string().default(''),
@@ -51,7 +50,6 @@ const incomingTextBodySchema = z.looseObject({
   }),
 })
 
-/** Queue item. `body` stays loose: non-text notifications are acked and ignored. */
 export const notificationSchema = z.object({
   receiptId: z.number(),
   body: z.looseObject({ typeWebhook: z.string().optional() }),
@@ -66,7 +64,6 @@ export interface IncomingText {
   timestamp: number
 }
 
-/** Returns normalized text message, or null if the notification is anything else. */
 export function parseIncomingText(body: unknown): IncomingText | null {
   const r = incomingTextBodySchema.safeParse(body)
   if (!r.success) return null
@@ -109,13 +106,10 @@ export interface HistoryMessage {
   direction: 'in' | 'out'
   text: string
   timestamp: number
-  /** Outgoing only. */
   delivery?: 'delivered' | 'read'
-  /** Incoming only: sender display name (useful in groups). */
   author?: string
 }
 
-/** Keeps text messages only; one malformed row must not break the whole history. */
 export function parseHistory(raw: unknown): HistoryMessage[] {
   if (!Array.isArray(raw)) return []
   const out: HistoryMessage[] = []
@@ -140,7 +134,6 @@ export function parseHistory(raw: unknown): HistoryMessage[] {
   return out.sort((a, b) => a.timestamp - b.timestamp)
 }
 
-/** Methods that answer with an empty body on success (deleteMessage, sendTyping). */
 export const emptyResponseSchema = z.unknown()
 
 export const editMessageSchema = z.object({ idMessage: z.string() })
@@ -191,11 +184,9 @@ const outgoingStatusBodySchema = z.looseObject({
 export interface OutgoingStatus {
   chatId: string
   idMessage: string
-  /** `delivered` / `read` raise the tick marks; `failed` / `noAccount` mean it never arrived. */
   status: 'delivered' | 'read' | 'failed'
 }
 
-/** Normalizes an `outgoingMessageStatus` notification; null for anything else. */
 export function parseOutgoingStatus(body: unknown): OutgoingStatus | null {
   const r = outgoingStatusBodySchema.safeParse(body)
   if (!r.success) return null

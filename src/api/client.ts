@@ -11,7 +11,6 @@ export interface RequestOptions {
   signal?: AbortSignal
 }
 
-/** Builds `{apiUrl}/waInstance{id}/{method}/{token}[/extra]`. */
 export function buildUrl(
   c: Credentials,
   method: string,
@@ -25,7 +24,6 @@ export function buildUrl(
   return `${url}?${qs}`
 }
 
-/** Cosmetic lookups queue behind anything the user did. */
 const BACKGROUND_METHODS = new Set([
   'getAvatar',
   'getContactInfo',
@@ -33,7 +31,6 @@ const BACKGROUND_METHODS = new Set([
   'getAccountSettings',
   'sendTyping',
 ])
-/** Long-poll: holds a connection for seconds, must not occupy the request budget. */
 const UNSCHEDULED_METHODS = new Set(['receiveNotification'])
 
 const laneOf = (method: string): Lane => (BACKGROUND_METHODS.has(method) ? 'background' : 'user')
@@ -74,7 +71,6 @@ export async function request<T>(
       ? fetchOnce()
       : schedule(laneOf(method), fetchOnce, opts.signal, method)
 
-  // HTTP 429 means "slow down": wait (Retry-After or exponential) and queue the call again.
   let res = await send()
   for (let attempt = 0; res.status === 429 && attempt < schedulerConfig.maxRetries; attempt++) {
     await sleep(retryDelayMs(res, attempt), opts.signal)
@@ -113,7 +109,6 @@ function httpMessage(status: number, body: unknown) {
   return detailOf(body) || `Request failed (${status})`
 }
 
-/** GREEN-API error bodies carry the human text in `message`, `error` or `reason`. */
 function detailOf(body: unknown) {
   if (typeof body === 'string') return body.slice(0, 200)
   if (!body || typeof body !== 'object') return ''

@@ -1,6 +1,5 @@
 export type Lane = 'user' | 'background'
 
-/** GREEN-API allows only 1 request/second for these methods (per instance); see its rate limiter. */
 const ONE_PER_SECOND_MS = 1100
 const DEFAULT_METHOD_GAPS: Record<string, number> = {
   getContacts: ONE_PER_SECOND_MS,
@@ -10,16 +9,12 @@ const DEFAULT_METHOD_GAPS: Record<string, number> = {
   setSettings: ONE_PER_SECOND_MS,
   getAccountSettings: ONE_PER_SECOND_MS,
   deleteMessage: ONE_PER_SECOND_MS,
-  // Not in the published table, but it started answering 429 well below 10 req/s.
   getContactInfo: ONE_PER_SECOND_MS,
 }
 
 export const schedulerConfig = {
-  /** Minimum spacing between any two request starts (all methods allow >= 10/s). */
   gapMs: 120,
-  /** Extra minimum spacing between two calls of the same method. */
   methodGapMs: DEFAULT_METHOD_GAPS as Record<string, number>,
-  /** First retry delay after HTTP 429; doubles each attempt (or `Retry-After` wins). */
   retryBaseMs: 1000,
   maxRetries: 3,
 }
@@ -42,7 +37,6 @@ let timer: ReturnType<typeof setTimeout> | undefined
 
 const abortError = () => new DOMException('Aborted', 'AbortError')
 
-/** Earliest moment this job may start without breaking the global or per-method spacing. */
 function eligibleAt(job: Job) {
   const global = lastStart + schedulerConfig.gapMs
   const gap = job.key ? (schedulerConfig.methodGapMs[job.key] ?? 0) : 0
@@ -60,7 +54,6 @@ function dropAborted() {
   }
 }
 
-/** Highest-priority job that may start right now, else the wait until the soonest one may. */
 function pick(now: number): { job?: Job; wait: number } {
   let wait = Infinity
   for (const lane of LANES) {
@@ -95,10 +88,6 @@ function pump() {
   }, wait)
 }
 
-/**
- * Starts tasks at most one per `gapMs` (and per `methodGapMs[key]` for the same method),
- * user-facing lane first, so background lookups can never starve or burst ahead of a user action.
- */
 export function schedule<T>(
   lane: Lane,
   task: () => Promise<T>,
@@ -130,7 +119,6 @@ export function schedule<T>(
   })
 }
 
-/** Abortable delay. */
 export function sleep(ms: number, signal?: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) return reject(abortError())

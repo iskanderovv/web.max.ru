@@ -66,11 +66,21 @@ npm run preview    # локальный просмотр сборки
 
 ```
 src/
-  api/        fetch-клиент, 4 основных метода GREEN-API и вспомогательные, Zod-схемы
-  store/      auth.ts, chats.ts: Zustand + localStorage
-  hooks/      useNotificationPoller, useSendMessage, useChatSync, usePresence, ...
-  lib/        poller.ts (receive → handle → delete), поиск, правила сообщений, время
-  features/   auth/ (вход), chat/ (список, окно чата, диалоги)
+  app/            корень приложения (App, завершение сессии)
+  api/            fetch-клиент GREEN-API, очередь запросов, квоты, Zod-схемы
+  features/
+    auth/         вход, хранилище учётных данных
+    chats/        список чатов, окно чата, сообщения, получение уведомлений
+    contacts/     контакты, добавление контакта, фото
+    search/       глобальный поиск по чатам, контактам и @username
+    settings/     профиль, настройки уведомлений инстанса
+    shell/        раскладка, боковая панель разделов
+  shared/         общие компоненты, хуки и утилиты (Avatar, Modal, время, ...)
+  styles/         дизайн-токены и глобальные стили
+tests/
+  unit/           модульные тесты (api, хранилища, утилиты, хуки)
+  integration/    сценарии на уровне интерфейса, по одному файлу на функцию
+  helpers/        fetch-заглушка, рендер приложения, примеры уведомлений
 ```
 
 Ключевые решения:

@@ -30,7 +30,6 @@ import {
 
 export const MAX_MESSAGE_LENGTH = 4096
 
-/** What the user typed in "new chat": phone number or @username. */
 export type Recipient = { phoneNumber: number } | { username: string }
 
 export function createGreenApi(c: Credentials) {
@@ -38,11 +37,9 @@ export function createGreenApi(c: Credentials) {
     getStateInstance: (signal?: AbortSignal) =>
       request(c, 'getStateInstance', stateInstanceSchema, { signal }),
 
-    /** The logged-in account itself: photo, phone, username and own chat id. */
     getAccountSettings: (signal?: AbortSignal): Promise<AccountSettings> =>
       request(c, 'getAccountSettings', accountSettingsSchema, { signal }),
 
-    /** Changes instance settings. The instance restarts; changes apply within ~5 minutes. */
     setSettings: (patch: Record<string, string>, signal?: AbortSignal) =>
       request(c, 'setSettings', setSettingsSchema, { method: 'POST', body: patch, signal }),
 
@@ -63,14 +60,9 @@ export function createGreenApi(c: Credentials) {
     getContacts: (signal?: AbortSignal): Promise<Contact[]> =>
       request(c, 'getContacts', contactsSchema, { signal }),
 
-    /** All dialogs of the account: users, bots, groups, supergroups and channels. */
     getChats: (signal?: AbortSignal): Promise<ChatInfo[]> =>
       request(c, 'getChats', chatsSchema, { signal }),
 
-    /**
-     * Adds (or renames) a Telegram contact by its chat id. An "already exists" refusal
-     * is treated as success: the contact is there, which is all the caller needs.
-     */
     async addContact(
       chatId: string,
       firstName: string,
@@ -93,7 +85,6 @@ export function createGreenApi(c: Credentials) {
       }
     },
 
-    /** `lastSeen` is a unix time, or 0 when the user hides it. */
     getContactInfo: (chatId: string, signal?: AbortSignal): Promise<ContactInfo> =>
       request(c, 'getContactInfo', contactInfoSchema, {
         method: 'POST',
@@ -102,7 +93,6 @@ export function createGreenApi(c: Credentials) {
       }),
 
     async getAvatar(chatId: string, signal?: AbortSignal): Promise<string> {
-      // HTTP 204 (empty body) means "no photo": that is an answer, not an error.
       const res = await request(c, 'getAvatar', avatarSchema.nullable(), {
         method: 'POST',
         body: { chatId },
@@ -124,7 +114,6 @@ export function createGreenApi(c: Credentials) {
       return parseHistory(raw)
     },
 
-    /** Only own (outgoing) messages. `forEveryone=false` deletes just on our side. */
     deleteMessage: (chatId: string, idMessage: string, forEveryone = true, signal?: AbortSignal) =>
       request(c, 'deleteMessage', emptyResponseSchema, {
         method: 'POST',
@@ -132,7 +121,6 @@ export function createGreenApi(c: Credentials) {
         signal,
       }),
 
-    /** Only own text messages, within the edit window (~48 h). */
     editMessage: (chatId: string, idMessage: string, message: string, signal?: AbortSignal) =>
       request(c, 'editMessage', editMessageSchema, {
         method: 'POST',
@@ -140,7 +128,6 @@ export function createGreenApi(c: Credentials) {
         signal,
       }),
 
-    /** Shows "typing…" to the recipient for `typingTime` ms (1000-20000). */
     sendTyping: (chatId: string, typingTime = 2000, signal?: AbortSignal) =>
       request(c, 'sendTyping', emptyResponseSchema, {
         method: 'POST',
@@ -155,7 +142,6 @@ export function createGreenApi(c: Credentials) {
         signal,
       }),
 
-    /** One notification from the queue, or null when the queue is empty. */
     async receiveNotification(
       receiveTimeout = 20,
       signal?: AbortSignal,
