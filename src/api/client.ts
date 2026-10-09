@@ -1,5 +1,6 @@
 import type { ZodType } from 'zod'
 import { ApiError, NetworkError, ValidationError, isAbortError } from './errors'
+import { schedule, schedulerConfig, sleep, type Lane } from './scheduler'
 import type { Credentials } from './schemas'
 
 export interface RequestOptions {
@@ -23,6 +24,25 @@ export function buildUrl(
   return `${url}?${qs}`
 }
 
+/** Cosmetic lookups queue behind anything the user did. */
+const BACKGROUND_METHODS = new Set([
+  'getAvatar',
+  'getContactInfo',
+  'getChatHistory',
+  'getAccountSettings',
+  'sendTyping',
+])
+/** Long-poll: holds a connection for seconds, must not occupy the request budget. */
+const UNSCHEDULED_METHODS = new Set(['receiveNotification'])
+
+const laneOf = (method: string): Lane => (BACKGROUND_METHODS.has(method) ? 'background' : 'user')
+
+function retryDelayMs(res: Response, attempt: number) {
+  const header = Number(res.headers.get('retry-after'))
+  if (Number.isFinite(header) && header > 0) return Math.min(header * 1000, 30_000)
+  return schedulerConfig.retryBaseMs * 2 ** attempt
+}
+
 export async function request<T>(
   c: Credentials,
   method: string,
@@ -30,17 +50,29 @@ export async function request<T>(
   opts: RequestOptions & { extra?: string | number } = {},
 ): Promise<T> {
   const url = buildUrl(c, method, opts.extra, opts.query)
-  let res: Response
-  try {
-    res = await fetch(url, {
-      method: opts.method ?? 'GET',
-      headers: opts.body === undefined ? undefined : { 'Content-Type': 'application/json' },
-      body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
-      signal: opts.signal,
-    })
-  } catch (e) {
-    if (isAbortError(e)) throw e
-    throw new NetworkError('Network error', { cause: e })
+
+  async function fetchOnce(): Promise<Response> {
+    try {
+      return await fetch(url, {
+        method: opts.method ?? 'GET',
+        headers: opts.body === undefined ? undefined : { 'Content-Type': 'application/json' },
+        body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+        signal: opts.signal,
+      })
+    } catch (e) {
+      if (isAbortError(e)) throw e
+      throw new NetworkError('Network error', { cause: e })
+    }
+  }
+
+  const send = () =>
+    UNSCHEDULED_METHODS.has(method) ? fetchOnce() : schedule(laneOf(method), fetchOnce, opts.signal)
+
+  // HTTP 429 means "slow down": wait (Retry-After or exponential) and queue the call again.
+  let res = await send()
+  for (let attempt = 0; res.status === 429 && attempt < schedulerConfig.maxRetries; attempt++) {
+    await sleep(retryDelayMs(res, attempt), opts.signal)
+    res = await send()
   }
 
   const text = await res.text()

@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 
-/** True once the element has scrolled into view (always true without IntersectionObserver). */
+/** Row must stay on screen this long before it counts as "seen" (skips fast scrolling). */
+export const VISIBLE_DWELL_MS = 300
+
+/** True once the element has stayed in view for a moment (always true without IntersectionObserver). */
 export function useVisible<T extends Element>() {
   const ref = useRef<T>(null)
   const [visible, setVisible] = useState(typeof IntersectionObserver === 'undefined')
@@ -8,14 +11,22 @@ export function useVisible<T extends Element>() {
   useEffect(() => {
     const el = ref.current
     if (visible || !el) return
+    let dwell: ReturnType<typeof setTimeout> | undefined
     const io = new IntersectionObserver((entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        setVisible(true)
-        io.disconnect()
+      const inView = entries.some((e) => e.isIntersecting)
+      clearTimeout(dwell)
+      if (inView) {
+        dwell = setTimeout(() => {
+          setVisible(true)
+          io.disconnect()
+        }, VISIBLE_DWELL_MS)
       }
     })
     io.observe(el)
-    return () => io.disconnect()
+    return () => {
+      clearTimeout(dwell)
+      io.disconnect()
+    }
   }, [visible])
 
   return { ref, visible }

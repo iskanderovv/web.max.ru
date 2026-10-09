@@ -1045,8 +1045,6 @@ describe('status marks in the chat list', () => {
     await syncAwaitingChats(
       createGreenApi({ apiUrl: 'https://x.test', idInstance: '1', apiTokenInstance: 't' }),
       null,
-      undefined,
-      0,
     )
     await waitFor(() => expect(marks(rowOf('Quiet Chat'))).toEqual(['read']))
     expect(bodyOf(api.of('getChatHistory').at(-1)).chatId).toBe('1')
@@ -1061,5 +1059,48 @@ describe('status marks in the chat list', () => {
     addChat('5', 'Pending', { direction: 'out', status: 'sending' })
     expect(chatsAwaitingRead('1')).toEqual(['2'])
     expect(chatsAwaitingRead(null).sort()).toEqual(['1', '2'])
+  })
+})
+
+describe('notification settings banner', () => {
+  it('offers to turn on read receipts and sends setSettings', async () => {
+    const user = userEvent.setup()
+    logIn()
+    const api = fakeFetch({
+      getSettings: { incomingWebhook: 'yes', outgoingWebhook: 'no' },
+      setSettings: { saveSettings: true },
+    })
+    renderApp()
+    expect(await screen.findByText(/read receipts .* are off/i)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Turn on' }))
+    await waitFor(() => expect(api.of('setSettings')).toHaveLength(1))
+    expect(bodyOf(api.of('setSettings')[0])).toEqual({
+      incomingWebhook: 'yes',
+      outgoingWebhook: 'yes',
+    })
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Turn on' })).not.toBeInTheDocument(),
+    )
+  })
+
+  it('shows nothing when both notification types are on', async () => {
+    logIn()
+    fakeFetch({ getSettings: { incomingWebhook: 'yes', outgoingWebhook: 'yes' } })
+    renderApp()
+    await screen.findByText(/no chats yet/i)
+    expect(screen.queryByRole('button', { name: 'Turn on' })).not.toBeInTheDocument()
+  })
+
+  it('shows an error when the settings change fails', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({
+      getSettings: { incomingWebhook: 'no' },
+      setSettings: () => new Response('{}', { status: 500 }),
+    })
+    renderApp()
+    expect(await screen.findByRole('alert')).toHaveTextContent(/incoming messages are disabled/i)
+    await user.click(screen.getByRole('button', { name: 'Turn on' }))
+    expect(await screen.findByText(/could not change settings/i)).toBeInTheDocument()
   })
 })

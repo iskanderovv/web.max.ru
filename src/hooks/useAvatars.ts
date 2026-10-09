@@ -2,9 +2,7 @@ import { useEffect } from 'react'
 import { useChats } from '@/store/chats'
 import { useGreenApi } from './useGreenApi'
 
-const GAP_MS = 500
-
-/** Looks up profile photos once per chat, one request at a time (the API is rate limited). */
+/** Looks up profile photos once per chat, one at a time (requests are also spaced by the scheduler). */
 export function useAvatars() {
   const api = useGreenApi()
   const pending = useChats((s) =>
@@ -27,7 +25,6 @@ export function useAvatars() {
           if (controller.signal.aborted) return
         }
         useChats.getState().setAvatar(chatId, url)
-        await new Promise((r) => setTimeout(r, GAP_MS))
       }
     })()
     return () => controller.abort()

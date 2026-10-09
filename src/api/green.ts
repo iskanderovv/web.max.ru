@@ -16,6 +16,7 @@ import {
   notificationSchema,
   sendMessageSchema,
   settingsSchema,
+  setSettingsSchema,
   stateInstanceSchema,
   type AccountSettings,
   type CheckAccountResult,
@@ -40,6 +41,10 @@ export function createGreenApi(c: Credentials) {
     /** The logged-in account itself: photo, phone, username and own chat id. */
     getAccountSettings: (signal?: AbortSignal): Promise<AccountSettings> =>
       request(c, 'getAccountSettings', accountSettingsSchema, { signal }),
+
+    /** Changes instance settings. The instance restarts; changes apply within ~5 minutes. */
+    setSettings: (patch: Record<string, string>, signal?: AbortSignal) =>
+      request(c, 'setSettings', setSettingsSchema, { method: 'POST', body: patch, signal }),
 
     getSettings: (signal?: AbortSignal) => request(c, 'getSettings', settingsSchema, { signal }),
 

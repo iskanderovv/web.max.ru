@@ -4,9 +4,8 @@ import { syncDelivery } from '@/lib/sync'
 import { useChats } from '@/store/chats'
 import { useGreenApi } from './useGreenApi'
 
-export const BACKGROUND_SYNC_MS = 12_000
-const MAX_CHATS_PER_PASS = 5
-const GAP_MS = 300
+export const BACKGROUND_SYNC_MS = 20_000
+const MAX_CHATS_PER_PASS = 3
 
 /** Chats whose latest message is ours and not yet read, newest first (the open chat syncs itself). */
 export function chatsAwaitingRead(activeChatId: string | null, limit = MAX_CHATS_PER_PASS) {
@@ -29,7 +28,6 @@ export async function syncAwaitingChats(
   api: GreenApi,
   activeChatId: string | null,
   signal?: AbortSignal,
-  gapMs = GAP_MS,
 ) {
   for (const chatId of chatsAwaitingRead(activeChatId)) {
     if (signal?.aborted) return
@@ -38,7 +36,6 @@ export async function syncAwaitingChats(
     } catch {
       /* try again next pass */
     }
-    await new Promise((r) => setTimeout(r, gapMs))
   }
 }
 

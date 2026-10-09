@@ -3,6 +3,7 @@ import incoming from '../../fixtures/receive-incoming-text.json'
 import other from '../../fixtures/receive-other-type.json'
 import { buildUrl } from './client'
 import { ApiError, NetworkError, ValidationError } from './errors'
+import { configureScheduler } from './scheduler'
 import { createGreenApi } from './green'
 import { notificationSchema, parseIncomingText, type Credentials } from './schemas'
 
@@ -141,5 +142,68 @@ describe('parseIncomingText', () => {
     const img = structuredClone(incoming.body) as Record<string, any>
     img.messageData = { typeMessage: 'imageMessage' }
     expect(parseIncomingText(img)).toBeNull()
+  })
+})
+
+describe('rate limiting (HTTP 429)', () => {
+  const tooMany = (retryAfter?: string) =>
+    new Response('{}', { status: 429, headers: retryAfter ? { 'retry-after': retryAfter } : {} })
+
+  it('retries after 429 and succeeds', async () => {
+    const fn = vi
+      .fn()
+      .mockResolvedValueOnce(tooMany())
+      .mockResolvedValueOnce(tooMany())
+      .mockResolvedValueOnce(new Response(JSON.stringify([{ chatId: '1', name: 'A' }])))
+    vi.stubGlobal('fetch', fn)
+    const contacts = await createGreenApi(creds).getContacts()
+    expect(contacts).toHaveLength(1)
+    expect(fn).toHaveBeenCalledTimes(3)
+  })
+
+  it('gives up with a friendly error after the retry limit', async () => {
+    const fn = vi.fn().mockImplementation(async () => tooMany())
+    vi.stubGlobal('fetch', fn)
+    const err = await createGreenApi(creds)
+      .getContacts()
+      .catch((e) => e)
+    expect(err).toBeInstanceOf(ApiError)
+    expect(err.status).toBe(429)
+    expect(err.message).toMatch(/too many requests/i)
+    expect(fn).toHaveBeenCalledTimes(4) // first try + 3 retries
+  })
+
+  it('does not retry other errors', async () => {
+    const fn = vi.fn().mockResolvedValue(new Response('{}', { status: 500 }))
+    vi.stubGlobal('fetch', fn)
+    await expect(createGreenApi(creds).getContacts()).rejects.toBeInstanceOf(ApiError)
+    expect(fn).toHaveBeenCalledTimes(1)
+  })
+
+  it('an aborted request stops retrying', async () => {
+    const ctl = new AbortController()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(async () => tooMany('5')),
+    )
+    const p = createGreenApi(creds).getAvatar('1', ctl.signal)
+    setTimeout(() => ctl.abort(), 20)
+    await expect(p).rejects.toMatchObject({ name: 'AbortError' })
+  })
+
+  it('long-poll receiveNotification bypasses the request spacing', async () => {
+    configureScheduler({ gapMs: 500 })
+    try {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockImplementation(async () => new Response('null')),
+      )
+      const t0 = Date.now()
+      const api = createGreenApi(creds)
+      await Promise.all([api.receiveNotification(), api.receiveNotification()])
+      expect(Date.now() - t0).toBeLessThan(200)
+    } finally {
+      configureScheduler({ gapMs: 0 })
+    }
   })
 })

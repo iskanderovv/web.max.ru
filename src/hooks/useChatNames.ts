@@ -3,8 +3,6 @@ import { isHandleLike, realNameOf } from '@/lib/names'
 import { useChats } from '@/store/chats'
 import { useGreenApi } from './useGreenApi'
 
-const GAP_MS = 400
-
 /**
  * Chats saved with only a @username/number title get their real first/last name from
  * `getContactInfo`. Sequential, once per chat (the API is rate limited).
@@ -34,7 +32,6 @@ export function useChatNames() {
           if (controller.signal.aborted) return
         }
         useChats.getState().resolveTitle(chatId, name || undefined)
-        await new Promise((r) => setTimeout(r, GAP_MS))
       }
     })()
     return () => controller.abort()

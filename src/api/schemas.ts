@@ -9,7 +9,10 @@ export type Credentials = z.infer<typeof credentialsSchema>
 
 export const stateInstanceSchema = z.object({ stateInstance: z.string() })
 
-export const settingsSchema = z.looseObject({ incomingWebhook: z.string().optional() })
+export const settingsSchema = z.looseObject({
+  incomingWebhook: z.string().optional(),
+  outgoingWebhook: z.string().optional(),
+})
 
 /** `exist` is optional: a 200 rate-limit reply (`retryAfter`) carries no `exist`. */
 export const checkAccountSchema = z.looseObject({
@@ -177,3 +180,29 @@ export const accountSettingsSchema = z.looseObject({
   username: z.string().optional(),
 })
 export type AccountSettings = z.infer<typeof accountSettingsSchema>
+
+const outgoingStatusBodySchema = z.looseObject({
+  typeWebhook: z.literal('outgoingMessageStatus'),
+  chatId: z.string(),
+  idMessage: z.string(),
+  status: z.string(),
+})
+
+export interface OutgoingStatus {
+  chatId: string
+  idMessage: string
+  /** `delivered` / `read` raise the tick marks; `failed` / `noAccount` mean it never arrived. */
+  status: 'delivered' | 'read' | 'failed'
+}
+
+/** Normalizes an `outgoingMessageStatus` notification; null for anything else. */
+export function parseOutgoingStatus(body: unknown): OutgoingStatus | null {
+  const r = outgoingStatusBodySchema.safeParse(body)
+  if (!r.success) return null
+  const { chatId, idMessage, status } = r.data
+  if (status === 'delivered' || status === 'read') return { chatId, idMessage, status }
+  if (status === 'failed' || status === 'noAccount') return { chatId, idMessage, status: 'failed' }
+  return null
+}
+
+export const setSettingsSchema = z.looseObject({ saveSettings: z.boolean().optional() })
