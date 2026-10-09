@@ -1,15 +1,17 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import App from '@/app/App'
 import { useAuth } from '@/features/auth/store'
 
-export function renderApp() {
+export async function renderApp() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(
+  const result = render(
     <QueryClientProvider client={client}>
       <App />
     </QueryClientProvider>,
   )
+  await screen.findAllByRole('button')
+  return result
 }
 
 export const bodyOf = (call?: { init?: RequestInit }) => JSON.parse(String(call?.init?.body))

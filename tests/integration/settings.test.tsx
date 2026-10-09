@@ -16,7 +16,7 @@ describe('settings', () => {
         avatar: 'https://img.test/me.jpg',
       },
     })
-    renderApp()
+    await renderApp()
     await user.click(screen.getByRole('button', { name: 'Settings' }))
     const panel = screen.getByRole('region', { name: 'Settings' })
     expect(await within(panel).findByText('+998885880331')).toBeInTheDocument()
@@ -32,7 +32,7 @@ describe('settings', () => {
     const user = userEvent.setup()
     logIn()
     fakeFetch({ getAccountSettings: { chatId: '777', phone: '998885880331', avatar: '' } })
-    renderApp()
+    await renderApp()
     await user.click(screen.getByRole('button', { name: 'Settings' }))
     const panel = screen.getByRole('region', { name: 'Settings' })
     expect(await within(panel).findByText('+998885880331')).toBeInTheDocument()
@@ -48,7 +48,7 @@ describe('notification settings banner', () => {
       getSettings: { incomingWebhook: 'yes', outgoingWebhook: 'no' },
       setSettings: { saveSettings: true },
     })
-    renderApp()
+    await renderApp()
     expect(await screen.findByText(/read receipts .* are off/i)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Turn on' }))
     await waitFor(() => expect(api.of('setSettings')).toHaveLength(1))
@@ -64,7 +64,7 @@ describe('notification settings banner', () => {
   it('shows nothing when both notification types are on', async () => {
     logIn()
     fakeFetch({ getSettings: { incomingWebhook: 'yes', outgoingWebhook: 'yes' } })
-    renderApp()
+    await renderApp()
     await screen.findByText(/no chats yet/i)
     expect(screen.queryByRole('button', { name: 'Turn on' })).not.toBeInTheDocument()
   })
@@ -76,7 +76,7 @@ describe('notification settings banner', () => {
       getSettings: { incomingWebhook: 'no' },
       setSettings: () => new Response('{}', { status: 500 }),
     })
-    renderApp()
+    await renderApp()
     expect(await screen.findByRole('alert')).toHaveTextContent(/incoming messages are disabled/i)
     await user.click(screen.getByRole('button', { name: 'Turn on' }))
     expect(await screen.findByText(/could not change settings/i)).toBeInTheDocument()

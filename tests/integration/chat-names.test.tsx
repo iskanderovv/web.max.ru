@@ -14,7 +14,7 @@ describe('chat names', () => {
     const api = fakeFetch({
       getContactInfo: { lastSeen: 0, name: 'zed', contactName: 'Zed Alpha' },
     })
-    renderApp()
+    await renderApp()
     await waitFor(() => expect(useChats.getState().chats['9'].title).toBe('Zed Alpha'))
     expect(useChats.getState().chats['8'].title).toBe('Already Named')
     expect(useChats.getState().chats['-7'].title).toBe('@some_group')
@@ -27,7 +27,7 @@ describe('chat names', () => {
     logIn()
     useChats.getState().ensureChat({ chatId: '9', title: '@zed_user', type: 'user' })
     fakeFetch({ getContactInfo: { lastSeen: 0 } })
-    renderApp()
+    await renderApp()
     await waitFor(() => expect(useChats.getState().chats['9'].titleChecked).toBe(true))
     expect(useChats.getState().chats['9'].title).toBe('@zed_user')
   })
@@ -41,7 +41,7 @@ describe('chat names', () => {
       checkAccount: { exist: true, chatId: '55', username: '@some_person' },
       getContactInfo: { lastSeen: 0, name: 'Some Person' },
     })
-    renderApp()
+    await renderApp()
     await user.type(screen.getByLabelText('Search chats'), '@some_person')
     await user.click(await screen.findByRole('button', { name: /search @some_person/i }))
     await waitFor(() => expect(useChats.getState().activeChatId).toBe('55'))

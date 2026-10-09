@@ -2,14 +2,52 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Chat: GREEN-API messenger client</title>
+    <meta
+      name="description"
+      content="Web chat for GREEN-API: send and receive text messages, manage contacts and track delivery and read status. Built with React and TypeScript."
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#17181c" />
+    <meta name="color-scheme" content="dark" />
+    <!--canonical-->
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#17181c" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Telegram Chat</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Web Chat" />
+    <meta property="og:title" content="Web Chat: GREEN-API messenger client" />
+    <meta
+      property="og:description"
+      content="Send and receive messages, manage contacts and see delivery status through your GREEN-API instance."
+    />
+    <meta property="og:image" content="__SITE_URL__/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Web Chat: GREEN-API messenger client" />
+    <meta
+      name="twitter:description"
+      content="Send and receive messages, manage contacts and see delivery status through your GREEN-API instance."
+    />
+    <meta name="twitter:image" content="__SITE_URL__/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Web Chat",
+        "applicationCategory": "CommunicationApplication",
+        "operatingSystem": "Web",
+        "description": "Web chat client for GREEN-API with contacts, message editing and delivery status.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>Web Chat needs JavaScript to run. Please enable it in your browser.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

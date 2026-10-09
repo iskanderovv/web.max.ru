@@ -123,7 +123,7 @@ export function NewContactDialog({ onClose }: { onClose: () => void }) {
           <button
             type="submit"
             disabled={create.isPending}
-            className="rounded-xl bg-mx-accent px-5 py-2.5 text-[15px] font-medium text-white hover:bg-mx-accent-dark disabled:opacity-60"
+            className="rounded-xl bg-mx-action px-5 py-2.5 text-[15px] font-medium text-white hover:bg-mx-action-dark disabled:opacity-60"
           >
             {create.isPending ? 'Adding…' : 'Add contact'}
           </button>

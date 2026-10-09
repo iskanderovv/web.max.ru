@@ -15,7 +15,7 @@ describe('login', () => {
 
   it('shows validation errors for empty form', async () => {
     const user = userEvent.setup()
-    renderApp()
+    await renderApp()
     await user.click(screen.getByRole('button', { name: /connect/i }))
     expect(await screen.findAllByText(/digits only|required|valid url/i)).not.toHaveLength(0)
     expect(useAuth.getState().credentials).toBeNull()
@@ -23,7 +23,7 @@ describe('login', () => {
 
   it('prefills apiUrl from idInstance', async () => {
     const user = userEvent.setup()
-    renderApp()
+    await renderApp()
     await user.type(screen.getByLabelText('idInstance'), '410022760325')
     expect(screen.getByLabelText('apiUrl')).toHaveValue('https://4100.api.green-api.com')
   })
@@ -31,7 +31,7 @@ describe('login', () => {
   it('logs in when instance is authorized and persists credentials', async () => {
     const user = userEvent.setup()
     fakeFetch({ getStateInstance: { stateInstance: 'authorized' } })
-    renderApp()
+    await renderApp()
     await fillAndSubmit(user)
     await waitFor(() => expect(useAuth.getState().credentials?.idInstance).toBe('410022760325'))
     expect(await screen.findByText(/no chats yet/i)).toBeInTheDocument()
@@ -41,7 +41,7 @@ describe('login', () => {
   it('rejects an instance that is not authorized', async () => {
     const user = userEvent.setup()
     fakeFetch({ getStateInstance: { stateInstance: 'notAuthorized' } })
-    renderApp()
+    await renderApp()
     await fillAndSubmit(user)
     expect(await screen.findByRole('alert')).toHaveTextContent(/not authorized/i)
     expect(useAuth.getState().credentials).toBeNull()
@@ -53,7 +53,7 @@ describe('login', () => {
     markExhausted('getContactInfo', { used: 100, total: 100 })
     fakeFetch()
     logIn()
-    renderApp()
+    await renderApp()
     await user.click(screen.getByRole('button', { name: 'Settings' }))
     await user.click(screen.getByRole('button', { name: /log out/i }))
     expect(quotaFor('getContactInfo')).toBeUndefined()
@@ -64,7 +64,7 @@ describe('login', () => {
     fakeFetch()
     logIn()
     useChats.getState().ensureChat({ chatId: '1', title: 'A' })
-    renderApp()
+    await renderApp()
     await user.click(screen.getByRole('button', { name: 'Settings' }))
     await user.click(screen.getByRole('button', { name: /log out/i }))
     expect(useAuth.getState().credentials).toBeNull()

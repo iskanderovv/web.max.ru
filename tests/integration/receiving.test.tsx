@@ -25,7 +25,7 @@ describe('receiving', () => {
       },
       deleteNotification: { result: true, reason: '' },
     })
-    renderApp()
+    await renderApp()
     const list = await screen.findByRole('list', { name: 'Messages' })
     expect(await within(list).findByText('Hello from Green-API!')).toBeInTheDocument()
     await waitFor(() => expect(api.of('deleteNotification')).toHaveLength(1))
@@ -50,7 +50,7 @@ describe('receiving', () => {
       },
       deleteNotification: { result: true, reason: '' },
     })
-    renderApp()
+    await renderApp()
     expect(await screen.findByText('Hello from Green-API!')).toBeInTheDocument()
     expect(useChats.getState().chats['10000000'].unread).toBe(1)
   })
@@ -58,7 +58,7 @@ describe('receiving', () => {
   it('warns when incoming notifications are disabled', async () => {
     logIn()
     fakeFetch({ getSettings: { incomingWebhook: 'no' } })
-    renderApp()
+    await renderApp()
     expect(await screen.findByRole('alert')).toHaveTextContent(/incoming messages are disabled/i)
   })
 })

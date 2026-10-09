@@ -54,7 +54,7 @@ export function LoginForm() {
             <MessageCircle size={22} />
           </span>
           <div>
-            <h1 className="text-xl font-semibold">Telegram Chat</h1>
+            <h1 className="text-xl font-semibold">Web Chat</h1>
             <p className="text-xs text-mx-secondary">Sign in with your GREEN-API instance</p>
           </div>
         </div>
@@ -91,7 +91,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={connect.isPending}
-          className="w-full rounded-xl bg-mx-accent py-3 text-[16px] font-medium text-white hover:bg-mx-accent-dark disabled:opacity-60"
+          className="w-full rounded-xl bg-mx-action py-3 text-[16px] font-medium text-white hover:bg-mx-action-dark disabled:opacity-60"
         >
           {connect.isPending ? 'Connecting…' : 'Connect'}
         </button>

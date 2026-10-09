@@ -11,6 +11,7 @@ import { NotificationBanner } from '@/features/settings/components/NotificationB
 import { SettingsPanel } from '@/features/settings/components/SettingsPanel'
 import type { Section } from '../sections'
 import { ChatsPanel } from './ChatsPanel'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { Rail } from './Rail'
 
 export function ChatShell({ onLogout }: { onLogout: () => void }) {
@@ -21,6 +22,7 @@ export function ChatShell({ onLogout }: { onLogout: () => void }) {
   useAvatars()
   useChatNames()
   useDeliverySync()
+  useDocumentTitle()
 
   return (
     <div className="flex h-full flex-col bg-mx-surface">

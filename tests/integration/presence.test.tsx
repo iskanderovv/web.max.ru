@@ -16,28 +16,28 @@ describe('presence', () => {
   it('shows "online" for a fresh lastSeen', async () => {
     openChat('user')
     fakeFetch({ getContactInfo: { lastSeen: Math.floor(Date.now() / 1000) - 10 } })
-    renderApp()
+    await renderApp()
     expect(await screen.findByText('online')).toBeInTheDocument()
   })
 
   it('shows a last seen time for an older lastSeen', async () => {
     openChat()
     fakeFetch({ getContactInfo: { lastSeen: Math.floor(Date.now() / 1000) - 3 * 86_400 } })
-    renderApp()
+    await renderApp()
     expect(await screen.findByText(/^last seen [A-Z][a-z]{2} \d{1,2}$/)).toBeInTheDocument()
   })
 
   it('shows "last seen recently" when privacy hides it', async () => {
     openChat('user')
     fakeFetch({ getContactInfo: { lastSeen: 0 } })
-    renderApp()
+    await renderApp()
     expect(await screen.findByText('last seen recently')).toBeInTheDocument()
   })
 
   it('does not ask for presence of bots and channels', async () => {
     openChat('bot')
     const api = fakeFetch()
-    renderApp()
+    await renderApp()
     expect(screen.getByText(/bot/)).toBeInTheDocument()
     expect(api.of('getContactInfo')).toHaveLength(0)
   })
@@ -48,7 +48,7 @@ describe('presence', () => {
       .getState()
       .ensureChat({ chatId: '9', title: 'Zed', username: '@zed_user', type: 'user' })
     fakeFetch({ getContactInfo: () => new Response('{}', { status: 500 }) })
-    renderApp()
+    await renderApp()
     expect(await screen.findByText('@zed_user')).toBeInTheDocument()
   })
 })
@@ -60,7 +60,7 @@ describe('API quota and presence budget', () => {
     useChats.getState().ensureChat({ chatId: '9', title: 'Zed', type: 'user' })
     useChats.getState().selectChat('9')
     const api = fakeFetch({ getContactInfo: { lastSeen: 0 } })
-    renderApp()
+    await renderApp()
     await screen.findByText('last seen recently')
     await vi.advanceTimersByTimeAsync(10 * 60_000)
     expect(api.of('getContactInfo')).toHaveLength(1)
@@ -89,7 +89,7 @@ describe('API quota and presence budget', () => {
           { status: 466 },
         ),
     })
-    renderApp()
+    await renderApp()
     expect(await screen.findByText('@zed_user')).toBeInTheDocument()
     await waitFor(() => expect(api.of('getContactInfo').length).toBeGreaterThanOrEqual(1))
     const callsAfterFirst = api.of('getContactInfo').length

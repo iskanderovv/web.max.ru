@@ -16,7 +16,7 @@ describe('delivery marks and history', () => {
     add('b', 'read')
     useChats.getState().selectChat('9')
     fakeFetch()
-    renderApp()
+    await renderApp()
     expect(screen.getAllByLabelText('Sent')).toHaveLength(1)
     expect(screen.getAllByLabelText('Read')).toHaveLength(1)
   })
@@ -44,7 +44,7 @@ describe('delivery marks and history', () => {
         },
       ],
     })
-    renderApp()
+    await renderApp()
     const list = await screen.findByRole('list', { name: 'Messages' })
     expect(within(list).getByText('earlier')).toBeInTheDocument()
     expect(within(list).getByLabelText('Read')).toBeInTheDocument()

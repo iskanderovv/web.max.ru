@@ -71,7 +71,7 @@ function RailButton({
           fill={active && label === 'Chats' ? 'currentColor' : 'none'}
         />
         {badge > 0 && (
-          <span className="absolute -top-1.5 -right-3 min-w-[18px] rounded-full bg-mx-accent px-1 text-center text-[11px] leading-[18px] font-medium text-white">
+          <span className="absolute -top-1.5 -right-3 min-w-[18px] rounded-full bg-mx-action px-1 text-center text-[11px] leading-[18px] font-medium text-white">
             {badge}
           </span>
         )}

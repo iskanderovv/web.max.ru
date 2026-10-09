@@ -13,6 +13,8 @@
   --mx-rail: #ffffff85;
   --mx-accent: #007aff;
   --mx-accent-dark: #1a8aff;
+  --mx-action: #0067d9;
+  --mx-action-dark: #0a74e6;
   --mx-danger: #ce4257;
   --mx-positive: #2bc644;
   --mx-error-bg: #3b1f26;
@@ -42,6 +44,8 @@
   --color-mx-rail: var(--mx-rail);
   --color-mx-accent: var(--mx-accent);
   --color-mx-accent-dark: var(--mx-accent-dark);
+  --color-mx-action: var(--mx-action);
+  --color-mx-action-dark: var(--mx-action-dark);
   --color-mx-danger: var(--mx-danger);
   --color-mx-positive: var(--mx-positive);
   --color-mx-error-bg: var(--mx-error-bg);

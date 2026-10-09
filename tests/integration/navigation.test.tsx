@@ -10,7 +10,7 @@ describe('rail sections', () => {
     const user = userEvent.setup()
     logIn()
     fakeFetch()
-    renderApp()
+    await renderApp()
     const rail = screen.getByRole('navigation', { name: 'Sections' })
     expect(within(rail).getByRole('button', { name: 'Chats' })).toHaveAttribute(
       'aria-current',
@@ -46,7 +46,7 @@ describe('rail sections', () => {
     add('-3', 'News Channel', 'channel', true)
     useChats.getState().selectChat(null)
     fakeFetch()
-    renderApp()
+    await renderApp()
     const rail = screen.getByRole('navigation', { name: 'Sections' })
     await user.click(within(rail).getByRole('button', { name: 'Unread' }))
     expect(screen.getByText('Loud Person')).toBeInTheDocument()

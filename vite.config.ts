@@ -5,8 +5,18 @@ import { defineConfig } from 'vitest/config'
 
 const path = (p: string) => fileURLToPath(new URL(p, import.meta.url))
 
+const siteUrl = (process.env.SITE_URL ?? '').replace(/\/+$/, '')
+
+const siteMeta = {
+  name: 'site-meta',
+  transformIndexHtml: (html: string) =>
+    html
+      .replaceAll('__SITE_URL__', siteUrl)
+      .replace('<!--canonical-->', siteUrl ? `<link rel="canonical" href="${siteUrl}/" />` : ''),
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), siteMeta],
   resolve: {
     alias: { '@tests': path('./tests'), '@': path('./src') },
   },

@@ -1,4 +1,4 @@
-# Telegram Chat на GREEN-API
+# Web Chat на GREEN-API
 
 Тестовое задание «Фронтенд разработчик React»: веб-интерфейс чата для отправки и получения текстовых сообщений через [GREEN-API](https://green-api.com/telegram).
 
@@ -42,7 +42,7 @@ npm test           # тесты (Vitest)
 npm run coverage   # тесты с отчётом о покрытии
 npm run typecheck  # проверка типов
 npm run lint       # oxlint
-npm run build      # продакшн-сборка в dist/
+npm run build      # продакшн-сборка в dist/ (для canonical и og:image: SITE_URL=https://ваш-домен npm run build)
 npm run preview    # локальный просмотр сборки
 ```
 

@@ -70,7 +70,7 @@ function ChatRow({ chat, active }: { chat: Chat; active: boolean }) {
               {preview}
             </span>
             {chat.unread > 0 && (
-              <span className="mt-0.5 min-w-5 shrink-0 rounded-full bg-mx-accent px-1.5 text-center text-xs leading-5 font-medium text-white">
+              <span className="mt-0.5 min-w-5 shrink-0 rounded-full bg-mx-action px-1.5 text-center text-xs leading-5 font-medium text-white">
                 {chat.unread}
               </span>
             )}

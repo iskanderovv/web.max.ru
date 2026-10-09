@@ -74,7 +74,7 @@ export function ContactsPanel({ onAdd }: { onAdd: () => void }) {
             </p>
             <button
               onClick={onAdd}
-              className="mt-3 rounded-xl bg-mx-accent px-6 py-2.5 text-[15px] font-medium text-white hover:bg-mx-accent-dark"
+              className="mt-3 rounded-xl bg-mx-action px-6 py-2.5 text-[15px] font-medium text-white hover:bg-mx-action-dark"
             >
               Add contact
             </button>

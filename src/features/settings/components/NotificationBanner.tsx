@@ -24,7 +24,7 @@ export function NotificationBanner() {
       <button
         onClick={() => enable.mutate()}
         disabled={enable.isPending}
-        className="rounded-md bg-mx-accent px-3 py-0.5 font-medium text-white hover:bg-mx-accent-dark disabled:opacity-60"
+        className="rounded-md bg-mx-action px-3 py-0.5 font-medium text-white hover:bg-mx-action-dark disabled:opacity-60"
       >
         {enable.isPending ? 'Turning on…' : 'Turn on'}
       </button>

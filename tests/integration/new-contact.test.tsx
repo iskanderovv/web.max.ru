@@ -27,7 +27,7 @@ describe('new contact', () => {
       checkAccount: { exist: true, chatId: '8019310179', username: '@ann_lee' },
       addContact: { addContact: true },
     })
-    renderApp()
+    await renderApp()
     await openDialog(user)
     await fill(user, { first: 'Ann', last: 'Lee', phone: '+998 90 123-45-67' })
     await waitFor(() => expect(useChats.getState().activeChatId).toBe('8019310179'))
@@ -52,7 +52,7 @@ describe('new contact', () => {
       checkAccount: { exist: true, chatId: '5' },
       addContact: { addContact: true },
     })
-    renderApp()
+    await renderApp()
     await openDialog(user)
     await fill(user, { first: 'Bob', phone: '998901112233' })
     await waitFor(() => expect(useChats.getState().chats['5']?.title).toBe('Bob'))
@@ -67,7 +67,7 @@ describe('new contact', () => {
       addContact: () =>
         new Response(JSON.stringify({ message: 'Contact 5 already exists.' }), { status: 400 }),
     })
-    renderApp()
+    await renderApp()
     await openDialog(user)
     await fill(user, { first: 'Bob', phone: '998901112233' })
     await waitFor(() => expect(useChats.getState().activeChatId).toBe('5'))
@@ -77,7 +77,7 @@ describe('new contact', () => {
     const user = userEvent.setup()
     logIn()
     const api = fakeFetch({ checkAccount: { exist: false, chatId: '' } })
-    renderApp()
+    await renderApp()
     await openDialog(user)
     await fill(user, { first: 'Ghost', phone: '998901112233' })
     expect(await screen.findByRole('alert')).toHaveTextContent(/not on telegram/i)
@@ -93,7 +93,7 @@ describe('new contact', () => {
       addContact: () =>
         new Response(JSON.stringify({ message: 'Contact limit reached' }), { status: 400 }),
     })
-    renderApp()
+    await renderApp()
     await openDialog(user)
     await fill(user, { first: 'Bob', phone: '998901112233' })
     expect(await screen.findByRole('alert')).toHaveTextContent('Contact limit reached')
@@ -104,7 +104,7 @@ describe('new contact', () => {
     const user = userEvent.setup()
     logIn()
     const api = fakeFetch()
-    renderApp()
+    await renderApp()
     await openDialog(user)
     await fill(user, { last: 'Only', phone: 'abc' })
     expect(await screen.findByText('First name is required')).toBeInTheDocument()
@@ -118,7 +118,7 @@ describe('new contact form layout', () => {
     const user = userEvent.setup()
     logIn()
     fakeFetch()
-    renderApp()
+    await renderApp()
     await user.click(screen.getByRole('button', { name: /new chat/i }))
     const dialog = screen.getByRole('dialog', { name: 'New Contact' })
     expect(within(dialog).queryByText('?')).not.toBeInTheDocument()
