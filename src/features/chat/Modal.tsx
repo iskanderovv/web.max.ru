@@ -28,7 +28,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`flex max-h-[85vh] w-full flex-col rounded-2xl bg-mx-surface shadow-xl ${wide ? 'max-w-md' : 'max-w-sm'}`}
+        className={`mx-pop flex max-h-[85vh] w-full flex-col rounded-[20px] bg-mx-card text-mx-text shadow-2xl ${wide ? 'max-w-md' : 'max-w-sm'}`}
       >
         <div className="flex items-center justify-between px-5 pt-4 pb-2">
           <h2 className="text-lg font-semibold">{title}</h2>

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Search } from 'lucide-react'
+import { Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { Contact } from '@/api/schemas'
 import { useCachedPresence } from '@/hooks/useCachedPresence'
@@ -7,11 +7,11 @@ import { useGreenApi } from '@/hooks/useGreenApi'
 import { isOnline } from '@/lib/presence'
 import { useChats } from '@/store/chats'
 import { Avatar } from './Avatar'
-import { Modal } from './Modal'
+import { PanelHeader, SearchField } from './ChatsPanel'
 
 const displayName = (c: Contact) => c.contactName || c.name || c.username || c.chatId
 
-export function ContactsDialog({ onClose }: { onClose: () => void }) {
+export function ContactsPanel({ onAdd }: { onAdd: () => void }) {
   const api = useGreenApi()
   const [query, setQuery] = useState('')
   const contacts = useQuery({
@@ -39,41 +39,46 @@ export function ContactsDialog({ onClose }: { onClose: () => void }) {
     const { ensureChat, selectChat } = useChats.getState()
     ensureChat({ chatId: c.chatId, title: displayName(c), username: c.username })
     selectChat(c.chatId)
-    onClose()
   }
 
-  return (
-    <Modal title="Contacts" onClose={onClose} wide>
-      <label className="mx-5 mb-2 flex items-center gap-2 rounded-full bg-mx-hover px-3 py-2 focus-within:ring-2 focus-within:ring-mx-accent">
-        <Search size={18} className="text-mx-secondary" />
-        <input
-          autoFocus
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search contacts"
-          aria-label="Search contacts"
-          className="w-full bg-transparent text-[15px] outline-none placeholder:text-mx-secondary"
-        />
-      </label>
+  const noContacts = contacts.isSuccess && (contacts.data?.length ?? 0) === 0
 
-      <div className="mx-scroll min-h-40 flex-1 overflow-y-auto px-2 pb-3">
+  return (
+    <section aria-label="Contacts" className="flex min-h-0 flex-1 flex-col">
+      <PanelHeader title="Contacts" onAdd={onAdd} />
+      <SearchField label="Search contacts" value={query} onChange={setQuery} />
+
+      <div className="mx-scroll min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         {contacts.isPending && (
           <p className="p-6 text-center text-sm text-mx-secondary">Loading…</p>
         )}
         {contacts.isError && (
           <p
             role="alert"
-            className="m-3 rounded-lg bg-mx-error-bg px-3 py-2 text-sm text-mx-error-text"
+            className="m-3 rounded-xl bg-mx-error-bg px-3 py-2 text-sm text-mx-error-text"
           >
             {contacts.error.message}
           </p>
         )}
-        {contacts.isSuccess && list.length === 0 && (
-          <p className="p-6 text-center text-sm text-mx-secondary">
-            {query
-              ? 'No contacts found'
-              : 'No contacts yet. The list can take up to 5 minutes to update.'}
-          </p>
+        {noContacts && (
+          <div className="flex flex-col items-center gap-2 px-6 pt-16 text-center">
+            <span className="grid size-20 place-items-center rounded-full bg-mx-hover text-mx-secondary">
+              <Users size={36} />
+            </span>
+            <p className="mt-3 text-[17px] font-semibold">No contacts yet</p>
+            <p className="text-sm text-mx-secondary">
+              Add a contact and start chatting. The list can take up to 5 minutes to update.
+            </p>
+            <button
+              onClick={onAdd}
+              className="mt-3 rounded-xl bg-mx-accent px-6 py-2.5 text-[15px] font-medium text-white hover:bg-mx-accent-dark"
+            >
+              Add contact
+            </button>
+          </div>
+        )}
+        {contacts.isSuccess && !noContacts && list.length === 0 && (
+          <p className="p-6 text-center text-sm text-mx-secondary">No contacts found</p>
         )}
         <ul>
           {list.map((c) => (
@@ -81,7 +86,7 @@ export function ContactsDialog({ onClose }: { onClose: () => void }) {
           ))}
         </ul>
       </div>
-    </Modal>
+    </section>
   )
 }
 
@@ -95,13 +100,15 @@ function ContactRow({ contact: c, onOpen }: { contact: Contact; onOpen: () => vo
     <li>
       <button
         onClick={onOpen}
-        className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-mx-hover"
+        className="flex w-full items-center gap-3 rounded-2xl p-2.5 text-left transition-colors hover:bg-mx-hover"
       >
-        <Avatar id={c.chatId} title={displayName(c)} size={44} />
+        <Avatar id={c.chatId} title={displayName(c)} size={48} />
         <span className="min-w-0">
-          <span className="block truncate font-medium">{displayName(c)}</span>
+          <span className="block truncate text-[16px] font-medium">{displayName(c)}</span>
           <span
-            className={`block truncate text-sm ${presence && isOnline(presence) ? 'text-mx-accent' : 'text-mx-secondary'}`}
+            className={`block truncate text-[14px] ${
+              presence && isOnline(presence) ? 'text-mx-accent' : 'text-mx-secondary'
+            }`}
           >
             {presence ?? (fallback || 'Telegram')}
           </span>

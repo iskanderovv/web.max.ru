@@ -1,13 +1,23 @@
+import { useChats } from '@/store/chats'
 import { useAvatars } from '@/hooks/useAvatars'
 import { useChatNames } from '@/hooks/useChatNames'
 import { useDeliverySync } from '@/hooks/useDeliverySync'
 import { useEnableNotifications } from '@/hooks/useEnableNotifications'
 import { useNotificationPoller } from '@/hooks/useNotificationPoller'
 import { useSettings } from '@/hooks/useSettings'
+import { useState } from 'react'
+import { ChatsPanel } from './ChatsPanel'
 import { ChatWindow } from './ChatWindow'
-import { Sidebar } from './Sidebar'
+import { ContactsPanel } from './ContactsPanel'
+import { NewContactDialog } from './NewContactDialog'
+import { Rail } from './Rail'
+import type { Section } from './sections'
+import { SettingsPanel } from './SettingsPanel'
 
 export function ChatShell() {
+  const [section, setSection] = useState<Section>('chats')
+  const [adding, setAdding] = useState(false)
+  const chatOpen = useChats((s) => s.activeChatId !== null)
   const online = useNotificationPoller()
   const settings = useSettings()
   const enable = useEnableNotifications()
@@ -53,10 +63,24 @@ export function ChatShell() {
           </span>
         </div>
       )}
-      <div className="flex min-h-0 flex-1">
-        <Sidebar />
+      <div className="flex min-h-0 flex-1 flex-col-reverse md:flex-row">
+        <Rail section={section} onSelect={setSection} />
+        <aside
+          className={`min-h-0 w-full shrink-0 flex-col border-mx-border bg-mx-surface md:flex md:w-[394px] md:border-r ${
+            chatOpen ? 'hidden' : 'flex'
+          } flex-1 md:flex-none`}
+        >
+          {section === 'contacts' ? (
+            <ContactsPanel onAdd={() => setAdding(true)} />
+          ) : section === 'settings' ? (
+            <SettingsPanel />
+          ) : (
+            <ChatsPanel section={section} onNewChat={() => setAdding(true)} />
+          )}
+        </aside>
         <ChatWindow />
       </div>
+      {adding && <NewContactDialog onClose={() => setAdding(false)} />}
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { User } from 'lucide-react'
 import { useState } from 'react'
 
 const GRADIENTS = [
@@ -29,7 +30,10 @@ export function Avatar({
 }) {
   const [broken, setBroken] = useState(false)
   const [from, to] = GRADIENTS[hash(id) % GRADIENTS.length]
-  const initial = title.replace(/^[@+]/, '').charAt(0).toUpperCase() || '?'
+  const bare = title.replace(/^[@+]/, '')
+  // A number or handle has no meaningful initial: show a person glyph instead.
+  const glyph = !bare || /^\d/.test(bare)
+  const initial = bare.charAt(0).toUpperCase()
 
   if (url && !broken) {
     return (
@@ -57,7 +61,7 @@ export function Avatar({
         background: `linear-gradient(${from}, ${to})`,
       }}
     >
-      {initial}
+      {glyph ? <User size={size * 0.5} /> : initial}
     </span>
   )
 }

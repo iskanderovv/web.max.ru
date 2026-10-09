@@ -10,7 +10,7 @@ import { useAuth } from '@/store/auth'
 type FormValues = z.input<typeof credentialsSchema>
 
 const inputCls =
-  'w-full rounded-lg border border-mx-border bg-mx-surface px-3 py-2 text-sm outline-none focus:border-mx-accent focus:ring-2 focus:ring-mx-accent/30'
+  'w-full rounded-xl bg-mx-hover px-4 py-3 text-[16px] outline-none placeholder:text-mx-secondary focus:ring-2 focus:ring-mx-accent'
 
 export function LoginForm() {
   const login = useAuth((s) => s.login)
@@ -47,15 +47,15 @@ export function LoginForm() {
     <main className="mx-wallpaper grid h-full place-items-center p-4">
       <form
         onSubmit={handleSubmit((v) => connect.mutate(v))}
-        className="w-full max-w-sm space-y-4 rounded-2xl bg-mx-surface p-6 shadow-lg"
+        className="mx-pop w-full max-w-sm space-y-4 rounded-[24px] bg-mx-surface p-8 shadow-2xl ring-1 ring-mx-ring"
         noValidate
       >
         <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-full bg-mx-accent text-white">
+          <span className="grid size-11 place-items-center rounded-full bg-mx-accent text-white">
             <MessageCircle size={22} />
           </span>
           <div>
-            <h1 className="text-lg font-semibold">Telegram Chat</h1>
+            <h1 className="text-xl font-semibold">Telegram Chat</h1>
             <p className="text-xs text-mx-secondary">Sign in with your GREEN-API instance</p>
           </div>
         </div>
@@ -92,7 +92,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={connect.isPending}
-          className="w-full rounded-lg bg-mx-accent py-2 text-sm font-medium text-white hover:bg-mx-accent-dark disabled:opacity-60"
+          className="w-full rounded-xl bg-mx-accent py-3 text-[16px] font-medium text-white hover:bg-mx-accent-dark disabled:opacity-60"
         >
           {connect.isPending ? 'Connecting…' : 'Connect'}
         </button>

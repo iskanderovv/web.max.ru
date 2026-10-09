@@ -21,7 +21,7 @@ const NOT_FOUND =
   'This number is not on Telegram, or its privacy settings hide it. Check the number and try again.'
 
 const fieldCls =
-  'w-full rounded-xl border border-mx-border bg-mx-surface px-3 py-3 text-[15px] outline-none placeholder:text-mx-secondary focus:border-mx-accent focus:ring-1 focus:ring-mx-accent'
+  'w-full rounded-xl bg-mx-hover px-4 py-3 text-[16px] outline-none placeholder:text-mx-secondary focus:ring-2 focus:ring-mx-accent'
 
 export function NewContactDialog({ onClose }: { onClose: () => void }) {
   const api = useGreenApi()
@@ -116,14 +116,14 @@ export function NewContactDialog({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-mx-accent hover:bg-mx-hover"
+            className="rounded-xl px-4 py-2.5 text-[15px] font-medium text-mx-accent hover:bg-mx-hover"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={create.isPending}
-            className="rounded-lg bg-mx-accent px-4 py-2 text-sm font-medium text-white hover:bg-mx-accent-dark disabled:opacity-60"
+            className="rounded-xl bg-mx-accent px-5 py-2.5 text-[15px] font-medium text-white hover:bg-mx-accent-dark disabled:opacity-60"
           >
             {create.isPending ? 'Adding…' : 'Add contact'}
           </button>

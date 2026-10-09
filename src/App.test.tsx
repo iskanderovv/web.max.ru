@@ -79,7 +79,7 @@ describe('login', () => {
     logIn()
     useChats.getState().ensureChat({ chatId: '1', title: 'A' })
     renderApp()
-    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
     await user.click(screen.getByRole('button', { name: /log out/i }))
     expect(useAuth.getState().credentials).toBeNull()
     expect(useChats.getState().chats).toEqual({})
@@ -459,7 +459,7 @@ describe('receiving', () => {
 })
 
 describe('menu, contacts, chat management', () => {
-  it('burger opens the side menu with the account photo, phone, username and actions', async () => {
+  it('settings panel shows the account photo, phone, username and actions', async () => {
     const user = userEvent.setup()
     logIn()
     const api = fakeFetch({
@@ -471,30 +471,78 @@ describe('menu, contacts, chat management', () => {
       },
     })
     renderApp()
-    await user.click(screen.getByRole('button', { name: 'Menu' }))
-    const nav = screen.getByRole('navigation', { name: /main menu/i })
-    expect(await within(nav).findByText('+998885880331')).toBeInTheDocument()
-    expect(within(nav).getByText('@my_account')).toBeInTheDocument()
-    expect(nav.querySelector('img')).toHaveAttribute('src', 'https://img.test/me.jpg')
-    expect(within(nav).queryByText(/instance/i)).not.toBeInTheDocument()
-    // The metered display-name lookup is not spent on the menu.
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    const panel = screen.getByRole('region', { name: 'Settings' })
+    expect(await within(panel).findByText('+998885880331')).toBeInTheDocument()
+    expect(within(panel).getByText('@my_account')).toBeInTheDocument()
+    expect(panel.querySelector('img')).toHaveAttribute('src', 'https://img.test/me.jpg')
+    expect(within(panel).queryByText(/instance/i)).not.toBeInTheDocument()
+    // The metered display-name lookup is not spent on the settings screen.
     expect(api.of('getContactInfo')).toHaveLength(0)
-    for (const name of ['New chat', 'Contacts', 'Log out']) {
-      expect(within(nav).getByRole('button', { name })).toBeInTheDocument()
-    }
-    await user.keyboard('{Escape}')
-    expect(screen.queryByRole('navigation', { name: /main menu/i })).not.toBeInTheDocument()
+    expect(within(panel).getByRole('switch', { name: 'Night mode' })).toBeInTheDocument()
+    expect(within(panel).getByRole('button', { name: 'Log out' })).toBeInTheDocument()
   })
 
-  it('side menu falls back to the phone number when the name is unknown', async () => {
+  it('settings falls back to a generic title when account info is unavailable', async () => {
     const user = userEvent.setup()
     logIn()
     fakeFetch({ getAccountSettings: { chatId: '777', phone: '998885880331', avatar: '' } })
     renderApp()
-    await user.click(screen.getByRole('button', { name: 'Menu' }))
-    const nav = screen.getByRole('navigation', { name: /main menu/i })
-    expect(await within(nav).findByText('+998885880331')).toBeInTheDocument()
-    expect(nav.querySelector('img')).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    const panel = screen.getByRole('region', { name: 'Settings' })
+    expect(await within(panel).findByText('+998885880331')).toBeInTheDocument()
+    expect(panel.querySelector('img')).toBeNull()
+  })
+
+  it('rail switches between sections and marks the current one', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch()
+    renderApp()
+    const rail = screen.getByRole('navigation', { name: 'Sections' })
+    expect(within(rail).getByRole('button', { name: 'Chats' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    await user.click(within(rail).getByRole('button', { name: 'Contacts' }))
+    expect(within(rail).getByRole('button', { name: 'Contacts' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(screen.getByRole('region', { name: 'Contacts' })).toBeInTheDocument()
+    await user.click(within(rail).getByRole('button', { name: 'Chats' }))
+    expect(screen.queryByRole('region', { name: 'Contacts' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Chats' })).toBeInTheDocument()
+  })
+
+  it('Unread and Channels sections filter the chat list', async () => {
+    const user = userEvent.setup()
+    logIn()
+    const add = (id: string, title: string, type: 'user' | 'channel', unread: boolean) => {
+      useChats.getState().ensureChat({ chatId: id, title, type })
+      useChats.getState().addMessage(id, {
+        id: `m${id}`,
+        text: 'hi',
+        direction: 'in',
+        timestamp: 100,
+        status: 'sent',
+      })
+      if (!unread) useChats.getState().selectChat(id)
+    }
+    add('1', 'Quiet Person', 'user', false)
+    add('2', 'Loud Person', 'user', true)
+    add('-3', 'News Channel', 'channel', true)
+    useChats.getState().selectChat(null)
+    fakeFetch()
+    renderApp()
+    const rail = screen.getByRole('navigation', { name: 'Sections' })
+    await user.click(within(rail).getByRole('button', { name: 'Unread' }))
+    expect(screen.getByText('Loud Person')).toBeInTheDocument()
+    expect(screen.getByText('News Channel')).toBeInTheDocument()
+    expect(screen.queryByText('Quiet Person')).not.toBeInTheDocument()
+    await user.click(within(rail).getByRole('button', { name: 'Channels' }))
+    expect(screen.getByText('News Channel')).toBeInTheDocument()
+    expect(screen.queryByText('Loud Person')).not.toBeInTheDocument()
   })
 
   it('contacts list opens a chat with the picked contact', async () => {
@@ -513,7 +561,6 @@ describe('menu, contacts, chat management', () => {
       ],
     })
     renderApp()
-    await user.click(screen.getByRole('button', { name: 'Menu' }))
     await user.click(screen.getByRole('button', { name: 'Contacts' }))
     expect(await screen.findByText('Bob Roy')).toBeInTheDocument()
     await user.type(screen.getByLabelText('Search contacts'), 'ann')
@@ -521,7 +568,6 @@ describe('menu, contacts, chat management', () => {
     await user.click(screen.getByText('Ann Lee'))
     expect(useChats.getState().activeChatId).toBe('1')
     expect(useChats.getState().chats['1'].title).toBe('Ann Lee')
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('shows an error when contacts cannot be loaded', async () => {
@@ -529,7 +575,6 @@ describe('menu, contacts, chat management', () => {
     logIn()
     fakeFetch({ getContacts: () => new Response('{}', { status: 500 }) })
     renderApp()
-    await user.click(screen.getByRole('button', { name: 'Menu' }))
     await user.click(screen.getByRole('button', { name: 'Contacts' }))
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
@@ -849,9 +894,8 @@ describe('contacts list and the metered presence lookup', () => {
     { chatId: '3', contactName: 'Cid Poe', type: 'user' },
   ]
   const openContacts = async (user: ReturnType<typeof userEvent.setup>) => {
-    await user.click(screen.getByRole('button', { name: 'Menu' }))
     await user.click(screen.getByRole('button', { name: 'Contacts' }))
-    return screen.findByRole('dialog', { name: 'Contacts' })
+    return screen.findByRole('region', { name: 'Contacts' })
   }
 
   it('shows username and phone under names and never fetches presence per row', async () => {
@@ -946,19 +990,19 @@ describe('chat names', () => {
 })
 
 describe('night mode', () => {
-  it('switch in the side menu toggles the theme without closing the menu', async () => {
+  it('switch in Settings toggles the theme and persists it', async () => {
     const user = userEvent.setup()
     logIn()
     useTheme.setState({ theme: 'light' })
     fakeFetch()
     renderApp()
-    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
     const sw = screen.getByRole('switch', { name: 'Night mode' })
     expect(sw).toHaveAttribute('aria-checked', 'false')
     await user.click(sw)
     expect(sw).toHaveAttribute('aria-checked', 'true')
     expect(document.documentElement.dataset.theme).toBe('dark')
-    expect(screen.getByRole('navigation', { name: /main menu/i })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Settings' })).toBeInTheDocument()
     await user.click(sw)
     expect(sw).toHaveAttribute('aria-checked', 'false')
     expect(document.documentElement.dataset.theme).toBe('light')
