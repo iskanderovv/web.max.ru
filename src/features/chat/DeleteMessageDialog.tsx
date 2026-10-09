@@ -36,7 +36,7 @@ export function DeleteMessageDialog({
   return (
     <Modal title="Delete message" onClose={onClose}>
       <div className="space-y-3 px-5 pb-2">
-        <p className="text-[15px] text-tg-secondary">
+        <p className="text-[15px] text-mx-secondary">
           {remote
             ? 'Do you want to delete this message?'
             : 'This message will be removed from this app only.'}
@@ -47,7 +47,7 @@ export function DeleteMessageDialog({
               type="checkbox"
               checked={forEveryone}
               onChange={(e) => setForEveryone(e.target.checked)}
-              className="size-4 accent-tg-blue"
+              className="size-4 accent-mx-accent"
             />
             Also delete for {chatTitle}
           </label>
@@ -55,7 +55,7 @@ export function DeleteMessageDialog({
         {error && (
           <p
             role="alert"
-            className="rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
+            className="rounded-lg bg-mx-error-bg px-3 py-2 text-sm text-mx-error-text"
           >
             {error}
           </p>
@@ -65,7 +65,7 @@ export function DeleteMessageDialog({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-tg-blue hover:bg-tg-hover"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-mx-accent hover:bg-mx-hover"
         >
           Cancel
         </button>
@@ -73,7 +73,7 @@ export function DeleteMessageDialog({
           type="button"
           onClick={confirm}
           disabled={pending}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-tg-danger hover:bg-tg-error-bg disabled:opacity-60"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-mx-danger hover:bg-mx-error-bg disabled:opacity-60"
         >
           {pending ? 'Deleting…' : 'Delete'}
         </button>

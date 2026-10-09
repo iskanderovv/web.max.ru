@@ -10,7 +10,7 @@ import { useAuth } from '@/store/auth'
 type FormValues = z.input<typeof credentialsSchema>
 
 const inputCls =
-  'w-full rounded-lg border border-tg-border bg-tg-surface px-3 py-2 text-sm outline-none focus:border-tg-blue focus:ring-2 focus:ring-tg-blue/30'
+  'w-full rounded-lg border border-mx-border bg-mx-surface px-3 py-2 text-sm outline-none focus:border-mx-accent focus:ring-2 focus:ring-mx-accent/30'
 
 export function LoginForm() {
   const login = useAuth((s) => s.login)
@@ -44,19 +44,19 @@ export function LoginForm() {
   })
 
   return (
-    <main className="tg-wallpaper grid h-full place-items-center p-4">
+    <main className="mx-wallpaper grid h-full place-items-center p-4">
       <form
         onSubmit={handleSubmit((v) => connect.mutate(v))}
-        className="w-full max-w-sm space-y-4 rounded-2xl bg-tg-surface p-6 shadow-lg"
+        className="w-full max-w-sm space-y-4 rounded-2xl bg-mx-surface p-6 shadow-lg"
         noValidate
       >
         <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-full bg-tg-blue text-white">
+          <span className="grid size-10 place-items-center rounded-full bg-mx-accent text-white">
             <MessageCircle size={22} />
           </span>
           <div>
             <h1 className="text-lg font-semibold">Telegram Chat</h1>
-            <p className="text-xs text-tg-secondary">Sign in with your GREEN-API instance</p>
+            <p className="text-xs text-mx-secondary">Sign in with your GREEN-API instance</p>
           </div>
         </div>
 
@@ -83,7 +83,7 @@ export function LoginForm() {
         {connect.error && (
           <p
             role="alert"
-            className="rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
+            className="rounded-lg bg-mx-error-bg px-3 py-2 text-sm text-mx-error-text"
           >
             {connect.error.message}
           </p>
@@ -92,7 +92,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={connect.isPending}
-          className="w-full rounded-lg bg-tg-blue py-2 text-sm font-medium text-white hover:bg-tg-blue-dark disabled:opacity-60"
+          className="w-full rounded-lg bg-mx-accent py-2 text-sm font-medium text-white hover:bg-mx-accent-dark disabled:opacity-60"
         >
           {connect.isPending ? 'Connecting…' : 'Connect'}
         </button>
@@ -112,9 +112,9 @@ function Field({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-xs font-medium text-tg-secondary">{label}</span>
+      <span className="text-xs font-medium text-mx-secondary">{label}</span>
       {children}
-      {error && <span className="block text-xs text-tg-danger">{error}</span>}
+      {error && <span className="block text-xs text-mx-danger">{error}</span>}
     </label>
   )
 }

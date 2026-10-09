@@ -25,8 +25,8 @@ export function MessageList({
   }, [count, chat.chatId])
 
   return (
-    <div className="tg-scroll flex-1 overflow-y-auto">
-      <ol className="mx-auto flex max-w-3xl flex-col gap-1 px-3 py-3" aria-label="Messages">
+    <div className="mx-scroll flex-1 overflow-y-auto">
+      <ol className="mx-auto flex max-w-[791px] flex-col gap-1 px-4 py-4" aria-label="Messages">
         {chat.messages.map((m, i) => {
           const prev = chat.messages[i - 1]
           const newDay = !prev || dayKey(prev.timestamp) !== dayKey(m.timestamp)
@@ -34,7 +34,7 @@ export function MessageList({
             <Fragment key={m.id}>
               {newDay && (
                 <li className="my-2 self-center">
-                  <span className="rounded-full bg-black/25 px-3 py-0.5 text-sm font-medium text-white">
+                  <span className="rounded-full bg-mx-pill px-3 py-0.5 text-sm font-medium text-white backdrop-blur">
                     {dayLabel(m.timestamp)}
                   </span>
                 </li>
@@ -85,32 +85,35 @@ function Bubble({
           e.preventDefault()
           setMenuOpen(true)
         }}
-        className={`group relative max-w-[min(34rem,85%)] rounded-xl px-2.5 pt-1.5 pb-1 text-[15px] leading-snug shadow-sm ${
-          out ? 'bg-tg-out' : 'bg-tg-surface'
-        } ${out ? 'rounded-br-sm' : 'rounded-bl-sm'}`}
+        className={`group mx-bubble relative max-w-[min(34rem,78%)] text-[16px] leading-[22px] ${
+          out ? 'mx-bubble-out' : 'mx-bubble-in'
+        } ${grouped ? (out ? 'rounded-tr-[6px]' : 'rounded-tl-[6px]') : ''}`}
       >
         <button
           type="button"
           aria-label="Message actions"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((v) => !v)}
-          className="absolute top-0.5 right-0.5 rounded-full bg-inherit p-0.5 text-tg-secondary opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100"
+          className="absolute top-1 right-1 rounded-full bg-black/25 p-0.5 text-white opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100 focus:opacity-100"
         >
           <ChevronDown size={16} />
         </button>
 
         {showAuthor && m.author && (
-          <span className="block pr-5 text-sm font-medium text-tg-blue">{m.author}</span>
+          <span className="block pr-5 text-sm font-medium text-[#4aa4ff]">{m.author}</span>
         )}
         <span className="break-words whitespace-pre-wrap">{m.text}</span>
         <span
-          className={`float-right mt-2 ml-3 flex items-center gap-1 text-xs ${
-            out ? 'text-tg-out-meta' : 'text-tg-secondary'
-          }`}
+          className="float-right mt-1.5 ml-3 flex items-center gap-1 text-[12px] leading-4"
+          style={{ color: out ? 'var(--mx-out-time)' : 'var(--mx-in-time)' }}
         >
           {m.edited && <span>edited</span>}
           {formatTime(m.timestamp)}
-          {out && <Status message={m} onRetry={onRetry} />}
+          {out && (
+            <span style={{ color: 'var(--mx-out-tick)' }}>
+              <Status message={m} onRetry={onRetry} />
+            </span>
+          )}
         </span>
 
         {menuOpen && (
@@ -118,7 +121,7 @@ function Bubble({
             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
             <div
               role="menu"
-              className={`absolute top-6 z-20 w-40 rounded-xl bg-tg-surface py-1 shadow-lg ring-1 ring-tg-ring ${
+              className={`absolute top-6 z-20 w-44 rounded-xl bg-mx-card py-1 text-mx-text shadow-lg ring-1 ring-mx-ring ${
                 out ? 'right-0' : 'left-0'
               }`}
             >
@@ -167,7 +170,7 @@ function MenuItem({
     <button
       role="menuitem"
       onClick={onClick}
-      className={`w-full px-4 py-2 text-left text-sm hover:bg-tg-hover ${danger ? 'text-tg-danger' : ''}`}
+      className={`w-full px-4 py-2 text-left text-sm hover:bg-mx-hover ${danger ? 'text-mx-danger' : ''}`}
     >
       {label}
     </button>
@@ -182,7 +185,7 @@ function Status({ message, onRetry }: { message: ChatMessage; onRetry: () => voi
       onClick={onRetry}
       aria-label="Failed to send. Retry"
       title="Failed to send. Click to retry"
-      className="text-tg-danger"
+      className="text-mx-danger"
     >
       <CircleAlert size={15} />
     </button>

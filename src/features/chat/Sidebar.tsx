@@ -23,7 +23,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`relative flex h-full w-full shrink-0 flex-col border-r border-tg-border bg-tg-surface md:w-[22rem] ${
+      className={`relative flex h-full w-full shrink-0 flex-col border-r border-mx-border bg-mx-surface md:w-[22rem] ${
         activeChatId ? 'hidden md:flex' : 'flex'
       }`}
     >
@@ -32,18 +32,18 @@ export function Sidebar() {
           onClick={() => setMenuOpen(true)}
           aria-label="Menu"
           aria-expanded={menuOpen}
-          className="rounded-full p-2.5 text-tg-secondary hover:bg-tg-hover"
+          className="rounded-full p-2.5 text-mx-secondary hover:bg-mx-hover"
         >
           <Menu size={22} />
         </button>
-        <label className="flex flex-1 items-center gap-2 rounded-full bg-tg-hover px-3 py-2 focus-within:ring-2 focus-within:ring-tg-blue">
-          <Search size={18} className="text-tg-secondary" />
+        <label className="flex flex-1 items-center gap-2 rounded-full bg-mx-hover px-3 py-2 focus-within:ring-2 focus-within:ring-mx-accent">
+          <Search size={18} className="text-mx-secondary" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search"
             aria-label="Search chats"
-            className="w-full bg-transparent text-[15px] outline-none placeholder:text-tg-secondary"
+            className="w-full bg-transparent text-[15px] outline-none placeholder:text-mx-secondary"
           />
         </label>
       </header>
@@ -51,9 +51,9 @@ export function Sidebar() {
       {searching ? (
         <SearchResults query={query} onDone={() => setQuery('')} />
       ) : (
-        <ul className="tg-scroll flex-1 overflow-y-auto px-2">
+        <ul className="mx-scroll flex-1 overflow-y-auto px-2">
           {chats.length === 0 && (
-            <li className="p-6 text-center text-sm text-tg-secondary">
+            <li className="p-6 text-center text-sm text-mx-secondary">
               No chats yet. Tap the pencil to start one.
             </li>
           )}
@@ -65,7 +65,7 @@ export function Sidebar() {
                 <button
                   onClick={() => useChats.getState().selectChat(chat.chatId)}
                   className={`flex w-full items-center gap-3 rounded-xl p-2 text-left ${
-                    active ? 'bg-tg-blue text-white' : 'hover:bg-tg-hover'
+                    active ? 'bg-mx-accent text-white' : 'hover:bg-mx-hover'
                   }`}
                 >
                   <Avatar id={chat.chatId} title={chat.title} url={chat.avatarUrl} />
@@ -75,7 +75,7 @@ export function Sidebar() {
                       {last && (
                         <span
                           className={`flex shrink-0 items-center gap-1 text-xs ${
-                            active ? 'text-white/80' : 'text-tg-secondary'
+                            active ? 'text-white/80' : 'text-mx-secondary'
                           }`}
                         >
                           {last.direction === 'out' && (
@@ -84,10 +84,10 @@ export function Sidebar() {
                                 active
                                   ? 'text-white'
                                   : last.status === 'failed'
-                                    ? 'text-tg-danger'
+                                    ? 'text-mx-danger'
                                     : last.status === 'sending'
                                       ? ''
-                                      : 'text-tg-out-meta'
+                                      : 'text-mx-secondary'
                               }
                             >
                               <StatusIcon status={last.status} label={false} />
@@ -100,7 +100,7 @@ export function Sidebar() {
                     <span className="flex items-center justify-between gap-2">
                       <span
                         className={`flex min-w-0 items-center gap-1 text-[15px] ${
-                          active ? 'text-white/90' : 'text-tg-secondary'
+                          active ? 'text-white/90' : 'text-mx-secondary'
                         }`}
                       >
                         <span className="truncate">
@@ -112,7 +112,7 @@ export function Sidebar() {
                         </span>
                       </span>
                       {chat.unread > 0 && (
-                        <span className="min-w-6 shrink-0 rounded-full bg-tg-blue px-1.5 py-0.5 text-center text-xs font-medium text-white">
+                        <span className="min-w-6 shrink-0 rounded-full bg-mx-accent px-1.5 py-0.5 text-center text-xs font-medium text-white">
                           {chat.unread}
                         </span>
                       )}
@@ -128,7 +128,7 @@ export function Sidebar() {
       <button
         onClick={() => setCreating(true)}
         aria-label="New chat"
-        className="absolute right-4 bottom-4 grid size-14 place-items-center rounded-full bg-tg-blue text-white shadow-lg hover:bg-tg-blue-dark"
+        className="absolute right-4 bottom-4 grid size-14 place-items-center rounded-full bg-mx-accent text-white shadow-lg hover:bg-mx-accent-dark"
       >
         <Pencil size={22} />
       </button>

@@ -84,7 +84,7 @@ export function SearchResults({ query, onDone }: { query: string; onDone: () => 
 
   return (
     <div
-      className="tg-scroll flex-1 overflow-y-auto px-2"
+      className="mx-scroll flex-1 overflow-y-auto px-2"
       aria-label="Search results"
       role="region"
     >
@@ -110,22 +110,22 @@ export function SearchResults({ query, onDone }: { query: string; onDone: () => 
             <button
               onClick={() => lookup.mutate(handle)}
               disabled={lookup.isPending}
-              className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-tg-hover disabled:opacity-60"
+              className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-mx-hover disabled:opacity-60"
             >
-              <span className="grid size-[54px] shrink-0 place-items-center rounded-full bg-tg-blue text-white">
+              <span className="grid size-[54px] shrink-0 place-items-center rounded-full bg-mx-accent text-white">
                 <Search size={22} />
               </span>
               <span className="min-w-0">
                 <span className="block truncate font-medium">
                   {lookup.isPending ? 'Searching…' : `Search ${handle}`}
                 </span>
-                <span className="block text-sm text-tg-secondary">Users and bots by username</span>
+                <span className="block text-sm text-mx-secondary">Users and bots by username</span>
               </span>
             </button>
             {lookup.error && (
               <p
                 role="alert"
-                className="mx-2 mb-2 rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
+                className="mx-2 mb-2 rounded-lg bg-mx-error-bg px-3 py-2 text-sm text-mx-error-text"
               >
                 {lookup.error.message}
               </p>
@@ -134,19 +134,19 @@ export function SearchResults({ query, onDone }: { query: string; onDone: () => 
         </Section>
       )}
 
-      {loading && empty && <p className="p-6 text-center text-sm text-tg-secondary">Searching…</p>}
+      {loading && empty && <p className="p-6 text-center text-sm text-mx-secondary">Searching…</p>}
       {!loading && empty && !handle && (
-        <p className="p-6 text-center text-sm text-tg-secondary">No results for “{query.trim()}”</p>
+        <p className="p-6 text-center text-sm text-mx-secondary">No results for “{query.trim()}”</p>
       )}
       {(chats.isError || contacts.isError) && (
         <p
           role="alert"
-          className="m-2 rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
+          className="m-2 rounded-lg bg-mx-error-bg px-3 py-2 text-sm text-mx-error-text"
         >
           Could not load your Telegram chats. {(chats.error ?? contacts.error)?.message}
         </p>
       )}
-      <p className="px-3 py-3 text-xs text-tg-secondary">
+      <p className="px-3 py-3 text-xs text-mx-secondary">
         Search covers your chats, contacts, groups, channels and bots. Type an exact @username to
         find any user or bot.
       </p>
@@ -164,7 +164,7 @@ const toHit = (c: Chat): SearchHit => ({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-2">
-      <h3 className="px-3 py-2 text-sm font-medium text-tg-blue">{title}</h3>
+      <h3 className="px-3 py-2 text-sm font-medium text-mx-accent">{title}</h3>
       <ul>{children}</ul>
     </section>
   )
@@ -175,7 +175,7 @@ function Row({ chat, onClick }: { chat: Chat; onClick: () => void }) {
     <li>
       <button
         onClick={onClick}
-        className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-tg-hover"
+        className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-mx-hover"
       >
         <Avatar id={chat.chatId} title={chat.title} url={chat.avatarUrl} />
         <Names title={chat.title} sub={[chat.username, typeLabel(chat.type)]} />
@@ -189,7 +189,7 @@ function HitRow({ hit, onClick }: { hit: SearchHit; onClick: () => void }) {
     <li>
       <button
         onClick={onClick}
-        className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-tg-hover"
+        className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-mx-hover"
       >
         <Avatar id={hit.chatId} title={hit.title} />
         <Names
@@ -205,7 +205,7 @@ function Names({ title, sub }: { title: string; sub: (string | undefined)[] }) {
   return (
     <span className="min-w-0">
       <span className="block truncate font-medium">{title}</span>
-      <span className="block truncate text-sm text-tg-secondary">
+      <span className="block truncate text-sm text-mx-secondary">
         {sub.filter(Boolean).join(' · ') || 'Telegram'}
       </span>
     </span>

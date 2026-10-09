@@ -21,7 +21,7 @@ const NOT_FOUND =
   'This number is not on Telegram, or its privacy settings hide it. Check the number and try again.'
 
 const fieldCls =
-  'w-full rounded-xl border border-tg-border bg-tg-surface px-3 py-3 text-[15px] outline-none placeholder:text-tg-secondary focus:border-tg-blue focus:ring-1 focus:ring-tg-blue'
+  'w-full rounded-xl border border-mx-border bg-mx-surface px-3 py-3 text-[15px] outline-none placeholder:text-mx-secondary focus:border-mx-accent focus:ring-1 focus:ring-mx-accent'
 
 export function NewContactDialog({ onClose }: { onClose: () => void }) {
   const api = useGreenApi()
@@ -80,10 +80,10 @@ export function NewContactDialog({ onClose }: { onClose: () => void }) {
             className={fieldCls}
           />
         </div>
-        {errors.firstName && <p className="text-sm text-tg-danger">{errors.firstName.message}</p>}
+        {errors.firstName && <p className="text-sm text-mx-danger">{errors.firstName.message}</p>}
 
-        <div className="space-y-1.5 border-t border-tg-border pt-4">
-          <label htmlFor="phone" className="text-sm font-medium text-tg-secondary">
+        <div className="space-y-1.5 border-t border-mx-border pt-4">
+          <label htmlFor="phone" className="text-sm font-medium text-mx-secondary">
             Phone Number
           </label>
           <input
@@ -95,9 +95,9 @@ export function NewContactDialog({ onClose }: { onClose: () => void }) {
             className={fieldCls}
           />
           {errors.phone ? (
-            <p className="text-sm text-tg-danger">{errors.phone.message}</p>
+            <p className="text-sm text-mx-danger">{errors.phone.message}</p>
           ) : (
-            <p className="text-sm text-tg-secondary">
+            <p className="text-sm text-mx-secondary">
               The contact is added to your Telegram contacts.
             </p>
           )}
@@ -106,7 +106,7 @@ export function NewContactDialog({ onClose }: { onClose: () => void }) {
         {create.error && (
           <p
             role="alert"
-            className="rounded-lg bg-tg-error-bg px-3 py-2 text-sm text-tg-error-text"
+            className="rounded-lg bg-mx-error-bg px-3 py-2 text-sm text-mx-error-text"
           >
             {create.error.message}
           </p>
@@ -116,14 +116,14 @@ export function NewContactDialog({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-tg-blue hover:bg-tg-hover"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-mx-accent hover:bg-mx-hover"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={create.isPending}
-            className="rounded-lg bg-tg-blue px-4 py-2 text-sm font-medium text-white hover:bg-tg-blue-dark disabled:opacity-60"
+            className="rounded-lg bg-mx-accent px-4 py-2 text-sm font-medium text-white hover:bg-mx-accent-dark disabled:opacity-60"
           >
             {create.isPending ? 'Adding…' : 'Add contact'}
           </button>

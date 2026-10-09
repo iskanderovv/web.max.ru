@@ -1,71 +1,93 @@
 @import 'tailwindcss';
 
 /*
- * Telegram Web (A) palette. Every surface color is a CSS variable switched by
- * <html data-theme="light|dark">; utilities below read them live, so no class changes on toggle.
+ * MAX web (web.max.ru) palette, "space" theme: values read from the live app's design tokens.
+ * Every color is a CSS variable switched by <html data-theme="light|dark">; the utilities below
+ * read them live, so components never change classes on toggle.
  */
 :root {
   color-scheme: light;
-  --tg-surface: #ffffff;
-  --tg-hover: #f4f4f5;
-  --tg-border: #dfe1e5;
-  --tg-text: #000000;
-  --tg-secondary: #707579;
-  --tg-out: #eeffde;
-  --tg-out-meta: #4fae4e;
-  --tg-danger: #df3f40;
-  --tg-error-bg: #fef2f2;
-  --tg-error-text: #b91c1c;
-  --tg-warn-bg: #fef3c7;
-  --tg-warn-text: #78350f;
-  --tg-ring: rgb(0 0 0 / 0.06);
-  --tg-scroll: rgb(0 0 0 / 0.2);
-  --wall-a: #dbe6c5;
-  --wall-b: #b9cf9f;
-  --wall-hi: rgb(255 255 255 / 0.35);
-  --wall-lo: rgb(110 150 90 / 0.25);
+  --mx-surface: #ffffff; /* panels */
+  --mx-ground: #edeef2; /* behind the chat */
+  --mx-card: #f5f7fa; /* inputs, search, cards */
+  --mx-input: #ffffff; /* floating message bar */
+  --mx-hover: #0c0d0e0f;
+  --mx-border: #0c0d0e29;
+  --mx-text: #060708;
+  --mx-secondary: #06070885;
+  --mx-accent: #007aff;
+  --mx-accent-dark: #0068d9;
+  --mx-danger: #ff303c;
+  --mx-positive: #1abe43;
+  --mx-error-bg: #ffe9ea;
+  --mx-error-text: #c4202b;
+  --mx-warn-bg: #fff4cc;
+  --mx-warn-text: #6b4e00;
+  --mx-ring: rgb(0 0 0 / 0.08);
+  --mx-scroll: rgb(0 0 0 / 0.2);
+  /* bubbles */
+  --mx-in-bg: #ffffff;
+  --mx-in-text: #060708;
+  --mx-in-time: #06070885;
+  --mx-out-bg: #e9fdff;
+  --mx-out-text: #011c29;
+  --mx-out-time: #0784b8;
+  --mx-out-tick: #0f8ec2;
+  --mx-pill: rgb(6 7 8 / 0.45);
+  --mx-dots: rgb(6 7 8 / 0.06);
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --tg-surface: #212121;
-  --tg-hover: #2c2c2c;
-  --tg-border: #3a3a3a;
-  --tg-text: #f5f5f5;
-  --tg-secondary: #a0a4a8;
-  --tg-out: #2b5278;
-  --tg-out-meta: #8fb9e3;
-  --tg-danger: #ff6b6b;
-  --tg-error-bg: #3b1f20;
-  --tg-error-text: #ffb4b4;
-  --tg-warn-bg: #3d3216;
-  --tg-warn-text: #fcd34d;
-  --tg-ring: rgb(255 255 255 / 0.1);
-  --tg-scroll: rgb(255 255 255 / 0.25);
-  --wall-a: #16222d;
-  --wall-b: #0b1219;
-  --wall-hi: rgb(255 255 255 / 0.04);
-  --wall-lo: rgb(60 100 140 / 0.18);
+  --mx-surface: #17181c;
+  --mx-ground: #0f0f12;
+  --mx-card: #25262d;
+  --mx-input: #1e1f24;
+  --mx-hover: #ffffff17;
+  --mx-border: #ffffff1f;
+  --mx-text: #ffffff;
+  --mx-secondary: #ffffffa3;
+  --mx-accent: #007aff;
+  --mx-accent-dark: #1a8aff;
+  --mx-danger: #ce4257;
+  --mx-positive: #2bc644;
+  --mx-error-bg: #3b1f26;
+  --mx-error-text: #ffb4bd;
+  --mx-warn-bg: #3a3118;
+  --mx-warn-text: #ffd60a;
+  --mx-ring: rgb(255 255 255 / 0.1);
+  --mx-scroll: rgb(255 255 255 / 0.25);
+  --mx-in-bg: linear-gradient(239deg, #3b3f5e 0%, #373a4e 50%, #32343d 100%);
+  --mx-in-text: #ffffff;
+  --mx-in-time: #ffffffa3;
+  --mx-out-bg: linear-gradient(239deg, #8849b4 0%, #735acd 50%, #5d6ae5 100%);
+  --mx-out-text: #ffffff;
+  --mx-out-time: #ffffffa3;
+  --mx-out-tick: #ffffffe0;
+  --mx-pill: rgb(255 255 255 / 0.12);
+  --mx-dots: rgb(255 255 255 / 0.05);
 }
 
 @theme inline {
-  --color-tg-blue: #3390ec;
-  --color-tg-blue-dark: #2b7fd1;
-  --color-tg-surface: var(--tg-surface);
-  --color-tg-hover: var(--tg-hover);
-  --color-tg-border: var(--tg-border);
-  --color-tg-text: var(--tg-text);
-  --color-tg-secondary: var(--tg-secondary);
-  --color-tg-out: var(--tg-out);
-  --color-tg-out-meta: var(--tg-out-meta);
-  --color-tg-danger: var(--tg-danger);
-  --color-tg-error-bg: var(--tg-error-bg);
-  --color-tg-error-text: var(--tg-error-text);
-  --color-tg-warn-bg: var(--tg-warn-bg);
-  --color-tg-warn-text: var(--tg-warn-text);
-  --color-tg-ring: var(--tg-ring);
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, 'Roboto', 'Apple Color Emoji', 'Segoe UI', sans-serif;
+  --color-mx-surface: var(--mx-surface);
+  --color-mx-ground: var(--mx-ground);
+  --color-mx-card: var(--mx-card);
+  --color-mx-input: var(--mx-input);
+  --color-mx-hover: var(--mx-hover);
+  --color-mx-border: var(--mx-border);
+  --color-mx-text: var(--mx-text);
+  --color-mx-secondary: var(--mx-secondary);
+  --color-mx-accent: var(--mx-accent);
+  --color-mx-accent-dark: var(--mx-accent-dark);
+  --color-mx-danger: var(--mx-danger);
+  --color-mx-positive: var(--mx-positive);
+  --color-mx-error-bg: var(--mx-error-bg);
+  --color-mx-error-text: var(--mx-error-text);
+  --color-mx-warn-bg: var(--mx-warn-bg);
+  --color-mx-warn-text: var(--mx-warn-text);
+  --color-mx-ring: var(--mx-ring);
+  --color-mx-pill: var(--mx-pill);
+  --font-sans: -apple-system, system-ui, Roboto, Avenir, Helvetica, Arial, sans-serif;
 }
 
 html,
@@ -75,23 +97,38 @@ body,
 }
 
 body {
-  @apply bg-tg-surface text-tg-text antialiased;
+  @apply bg-mx-surface text-mx-text antialiased;
   font-family: var(--font-sans);
 }
 
-.tg-wallpaper {
-  background-color: var(--wall-b);
-  background-image:
-    radial-gradient(circle at 20% 15%, var(--wall-hi), transparent 40%),
-    radial-gradient(circle at 80% 85%, var(--wall-lo), transparent 45%),
-    linear-gradient(160deg, var(--wall-a) 0%, var(--wall-b) 100%);
+/* Chat canvas: flat ground color with a faint dot pattern (MAX uses an illustrated one). */
+.mx-wallpaper {
+  background-color: var(--mx-ground);
+  background-image: radial-gradient(var(--mx-dots) 1.2px, transparent 1.4px);
+  background-size: 22px 22px;
 }
 
-.tg-scroll::-webkit-scrollbar {
+/* Bubbles. Corner radii follow MAX: 16px, with 6px on the side facing the author. */
+.mx-bubble {
+  border-radius: 16px;
+  padding: 8px 10px 6px;
+}
+.mx-bubble-in {
+  background: var(--mx-in-bg);
+  color: var(--mx-in-text);
+  border-bottom-left-radius: 6px;
+}
+.mx-bubble-out {
+  background: var(--mx-out-bg);
+  color: var(--mx-out-text);
+  border-bottom-right-radius: 6px;
+}
+
+.mx-scroll::-webkit-scrollbar {
   width: 6px;
 }
-.tg-scroll::-webkit-scrollbar-thumb {
-  background: var(--tg-scroll);
+.mx-scroll::-webkit-scrollbar-thumb {
+  background: var(--mx-scroll);
   border-radius: 3px;
 }
 
@@ -105,7 +142,7 @@ body {
   animation-timing-function: ease;
 }
 
-@keyframes tg-slide-in {
+@keyframes mx-slide-in {
   from {
     transform: translateX(-100%);
   }
@@ -113,7 +150,7 @@ body {
     transform: translateX(0);
   }
 }
-@keyframes tg-fade-in {
+@keyframes mx-fade-in {
   from {
     opacity: 0;
   }
@@ -121,9 +158,22 @@ body {
     opacity: 1;
   }
 }
-.tg-drawer {
-  animation: tg-slide-in 0.2s ease-out;
+@keyframes mx-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
-.tg-backdrop {
-  animation: tg-fade-in 0.2s ease-out;
+.mx-drawer {
+  animation: mx-slide-in 0.2s ease-out;
+}
+.mx-backdrop {
+  animation: mx-fade-in 0.2s ease-out;
+}
+.mx-pop {
+  animation: mx-pop-in 0.15s ease-out;
 }

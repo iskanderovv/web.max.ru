@@ -28,12 +28,12 @@ export function Drawer({
 
   return (
     <div className="fixed inset-0 z-20">
-      <div className="tg-backdrop absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="mx-backdrop absolute inset-0 bg-black/40" onClick={onClose} />
       <nav
         aria-label="Main menu"
-        className="tg-drawer absolute inset-y-0 left-0 flex w-[19rem] max-w-[85vw] flex-col bg-tg-surface shadow-xl"
+        className="mx-drawer absolute inset-y-0 left-0 flex w-[19rem] max-w-[85vw] flex-col bg-mx-surface shadow-xl"
       >
-        <div className="bg-tg-blue px-5 pt-6 pb-4 text-white">
+        <div className="bg-mx-accent px-5 pt-6 pb-4 text-white">
           <Avatar id={account?.chatId ?? 'me'} title={title} url={account?.avatarUrl} size={64} />
           <p className="mt-3 truncate font-medium">{title}</p>
           {account?.username && (
@@ -49,16 +49,16 @@ export function Drawer({
               aria-checked={dark}
               aria-label="Night mode"
               onClick={toggleTheme}
-              className="flex w-full items-center gap-5 px-5 py-3 text-left text-[15px] font-medium hover:bg-tg-hover"
+              className="flex w-full items-center gap-5 px-5 py-3 text-left text-[15px] font-medium hover:bg-mx-hover"
             >
-              <span className="text-tg-secondary">
+              <span className="text-mx-secondary">
                 {dark ? <Moon size={22} /> : <Sun size={22} />}
               </span>
               <span className="flex-1">Night mode</span>
               <span
                 aria-hidden="true"
                 className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${
-                  dark ? 'bg-tg-blue' : 'bg-tg-secondary/50'
+                  dark ? 'bg-mx-accent' : 'bg-mx-secondary/50'
                 }`}
               >
                 <span
@@ -70,7 +70,7 @@ export function Drawer({
             </button>
           </li>
         </ul>
-        <ul className="border-t border-tg-border py-2">
+        <ul className="border-t border-mx-border py-2">
           <Item icon={<LogOut size={22} />} label="Log out" onClick={endSession} />
         </ul>
       </nav>
@@ -83,9 +83,9 @@ function Item({ icon, label, onClick }: { icon: ReactNode; label: string; onClic
     <li>
       <button
         onClick={onClick}
-        className="flex w-full items-center gap-5 px-5 py-3 text-left text-[15px] font-medium hover:bg-tg-hover"
+        className="flex w-full items-center gap-5 px-5 py-3 text-left text-[15px] font-medium hover:bg-mx-hover"
       >
-        <span className="text-tg-secondary">{icon}</span>
+        <span className="text-mx-secondary">{icon}</span>
         {label}
       </button>
     </li>

@@ -19,11 +19,11 @@ export function ChatShell() {
   const statusOff = !!settings.data && !incomingOff && settings.data.outgoingWebhook !== 'yes'
 
   return (
-    <div className="flex h-full flex-col bg-tg-surface">
+    <div className="flex h-full flex-col bg-mx-surface">
       {!online && (
         <p
           role="status"
-          className="bg-tg-warn-bg px-4 py-1.5 text-center text-sm text-tg-warn-text"
+          className="bg-mx-warn-bg px-4 py-1.5 text-center text-sm text-mx-warn-text"
         >
           Connection problem. Retrying…
         </p>
@@ -32,7 +32,7 @@ export function ChatShell() {
         <div
           role={incomingOff ? 'alert' : 'status'}
           className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-1.5 text-center text-sm ${
-            incomingOff ? 'bg-tg-error-bg text-tg-error-text' : 'bg-tg-warn-bg text-tg-warn-text'
+            incomingOff ? 'bg-mx-error-bg text-mx-error-text' : 'bg-mx-warn-bg text-mx-warn-text'
           }`}
         >
           <span>
@@ -43,7 +43,7 @@ export function ChatShell() {
           <button
             onClick={() => enable.mutate()}
             disabled={enable.isPending}
-            className="rounded-md bg-tg-blue px-3 py-0.5 font-medium text-white hover:bg-tg-blue-dark disabled:opacity-60"
+            className="rounded-md bg-mx-accent px-3 py-0.5 font-medium text-white hover:bg-mx-accent-dark disabled:opacity-60"
           >
             {enable.isPending ? 'Turning on…' : 'Turn on'}
           </button>

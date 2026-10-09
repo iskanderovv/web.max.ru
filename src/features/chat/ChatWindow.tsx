@@ -16,8 +16,8 @@ export function ChatWindow() {
 
   if (!chat) {
     return (
-      <section className="tg-wallpaper hidden flex-1 place-items-center md:grid">
-        <span className="rounded-full bg-black/25 px-4 py-1 text-sm font-medium text-white">
+      <section className="mx-wallpaper hidden flex-1 place-items-center md:grid">
+        <span className="rounded-full bg-mx-pill px-4 py-1 text-sm font-medium text-white backdrop-blur">
           Select a chat to start messaging
         </span>
       </section>
@@ -35,20 +35,20 @@ function ActiveChat({ chat }: { chat: Chat }) {
   const [deleting, setDeleting] = useState<ChatMessage | null>(null)
 
   return (
-    <section className="tg-wallpaper flex min-w-0 flex-1 flex-col">
-      <header className="relative flex h-14 shrink-0 items-center gap-3 bg-tg-surface px-3 shadow-sm">
+    <section className="mx-wallpaper flex min-w-0 flex-1 flex-col">
+      <header className="relative flex h-16 shrink-0 items-center gap-3 border-b border-mx-border bg-mx-surface px-4">
         <button
           onClick={() => useChats.getState().selectChat(null)}
           aria-label="Back"
-          className="rounded-full p-2 text-tg-secondary hover:bg-tg-hover md:hidden"
+          className="rounded-full p-2 text-mx-text hover:bg-mx-hover"
         >
           <ArrowLeft size={20} />
         </button>
-        <Avatar id={chat.chatId} title={chat.title} url={chat.avatarUrl} size={42} />
+        <Avatar id={chat.chatId} title={chat.title} url={chat.avatarUrl} size={40} />
         <div className="min-w-0 flex-1">
-          <h2 className="truncate font-medium">{chat.title}</h2>
+          <h2 className="truncate text-[16px] leading-5 font-semibold">{chat.title}</h2>
           <p
-            className={`truncate text-sm ${presence && isOnline(presence) ? 'text-tg-blue' : 'text-tg-secondary'}`}
+            className={`truncate text-[13px] leading-4 ${presence && isOnline(presence) ? 'text-mx-accent' : 'text-mx-secondary'}`}
           >
             {presence ??
               ([chat.username !== chat.title ? chat.username : '', typeLabel(chat.type)]
@@ -62,7 +62,7 @@ function ActiveChat({ chat }: { chat: Chat }) {
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Chat actions"
           aria-expanded={menuOpen}
-          className="rounded-full p-2.5 text-tg-secondary hover:bg-tg-hover"
+          className="rounded-full p-2.5 text-mx-text hover:bg-mx-hover"
         >
           <MoreVertical size={20} />
         </button>
@@ -71,7 +71,7 @@ function ActiveChat({ chat }: { chat: Chat }) {
             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
             <div
               role="menu"
-              className="absolute top-12 right-3 z-20 w-48 rounded-xl bg-tg-surface py-1 shadow-lg ring-1 ring-tg-ring"
+              className="mx-pop absolute top-14 right-3 z-20 w-52 rounded-2xl bg-mx-card py-1 text-mx-text shadow-xl ring-1 ring-mx-ring"
             >
               <button
                 role="menuitem"
@@ -79,7 +79,7 @@ function ActiveChat({ chat }: { chat: Chat }) {
                   setMenuOpen(false)
                   setConfirm('clear')
                 }}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-tg-hover"
+                className="w-full px-4 py-2 text-left text-sm hover:bg-mx-hover"
               >
                 Clear history
               </button>
@@ -89,7 +89,7 @@ function ActiveChat({ chat }: { chat: Chat }) {
                   setMenuOpen(false)
                   setConfirm('delete')
                 }}
-                className="w-full px-4 py-2 text-left text-sm text-tg-danger hover:bg-tg-hover"
+                className="w-full px-4 py-2 text-left text-sm text-mx-danger hover:bg-mx-hover"
               >
                 Delete chat
               </button>
@@ -100,7 +100,7 @@ function ActiveChat({ chat }: { chat: Chat }) {
 
       {chat.messages.length === 0 ? (
         <div className="grid flex-1 place-items-center">
-          <span className="rounded-full bg-black/25 px-4 py-1 text-sm font-medium text-white">
+          <span className="rounded-full bg-mx-pill px-4 py-1 text-sm font-medium text-white backdrop-blur">
             No messages here yet…
           </span>
         </div>

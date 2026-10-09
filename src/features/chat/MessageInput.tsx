@@ -74,24 +74,24 @@ export function MessageInput({
 
   return (
     <form
-      className="mx-auto w-full max-w-3xl px-3 pb-3"
+      className="mx-auto w-full max-w-[791px] px-4 pb-4"
       onSubmit={(e) => {
         e.preventDefault()
         void submit()
       }}
     >
       {editing && (
-        <div className="mb-1 flex items-center gap-3 rounded-t-2xl bg-tg-surface px-4 py-2 shadow-sm">
-          <Pencil size={18} className="shrink-0 text-tg-blue" />
-          <div className="min-w-0 flex-1 border-l-2 border-tg-blue pl-2 text-sm">
-            <p className="font-medium text-tg-blue">Edit message</p>
-            <p className="truncate text-tg-secondary">{editing.text}</p>
+        <div className="mb-2 flex items-center gap-3 rounded-2xl bg-mx-input px-4 py-2 shadow-lg ring-1 ring-mx-ring">
+          <Pencil size={18} className="shrink-0 text-mx-accent" />
+          <div className="min-w-0 flex-1 border-l-2 border-mx-accent pl-2 text-sm">
+            <p className="font-medium text-mx-accent">Edit message</p>
+            <p className="truncate text-mx-secondary">{editing.text}</p>
           </div>
           <button
             type="button"
             onClick={cancelEdit}
             aria-label="Cancel editing"
-            className="rounded-full p-1.5 text-tg-secondary hover:bg-tg-hover"
+            className="rounded-full p-1.5 text-mx-secondary hover:bg-mx-hover"
           >
             <X size={18} />
           </button>
@@ -100,49 +100,47 @@ export function MessageInput({
       {error && (
         <p
           role="alert"
-          className="mb-1 rounded-lg bg-tg-error-bg px-3 py-1.5 text-sm text-tg-error-text"
+          className="mb-1 rounded-lg bg-mx-error-bg px-3 py-1.5 text-sm text-mx-error-text"
         >
           {error}
         </p>
       )}
-      <div className="flex items-end gap-2">
-        <div className="flex min-h-[54px] flex-1 items-center rounded-2xl bg-tg-surface px-4 py-3 shadow-sm">
-          <textarea
-            ref={ref}
-            value={value}
-            rows={1}
-            placeholder="Message"
-            aria-label="Message"
-            onChange={(e) => {
-              setValue(e.target.value)
-              resize(e.target)
-              if (!editing && e.target.value.trim()) notifyTyping()
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault()
-                void submit()
-              } else if (e.key === 'Escape' && editing) {
-                cancelEdit()
-              }
-            }}
-            className="max-h-40 w-full resize-none bg-transparent text-[15px] leading-snug outline-none placeholder:text-tg-secondary"
-          />
-          {value.length > MAX_MESSAGE_LENGTH - 200 && (
-            <span
-              className={`ml-2 self-center text-xs ${tooLong ? 'text-tg-danger' : 'text-tg-secondary'}`}
-            >
-              {MAX_MESSAGE_LENGTH - value.length}
-            </span>
-          )}
-        </div>
+      <div className="flex items-end gap-1 rounded-[22px] bg-mx-input p-1.5 pl-4 shadow-lg ring-1 ring-mx-ring">
+        <textarea
+          ref={ref}
+          value={value}
+          rows={1}
+          placeholder="Message"
+          aria-label="Message"
+          onChange={(e) => {
+            setValue(e.target.value)
+            resize(e.target)
+            if (!editing && e.target.value.trim()) notifyTyping()
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault()
+              void submit()
+            } else if (e.key === 'Escape' && editing) {
+              cancelEdit()
+            }
+          }}
+          className="max-h-40 min-h-10 flex-1 resize-none bg-transparent py-2 text-[16px] leading-6 outline-none placeholder:text-mx-secondary"
+        />
+        {value.length > MAX_MESSAGE_LENGTH - 200 && (
+          <span className={`mb-2.5 text-xs ${tooLong ? 'text-mx-danger' : 'text-mx-secondary'}`}>
+            {MAX_MESSAGE_LENGTH - value.length}
+          </span>
+        )}
         <button
           type="submit"
           disabled={!canSend}
           aria-label={editing ? 'Save changes' : 'Send message'}
-          className="grid size-[54px] shrink-0 place-items-center rounded-full bg-tg-blue text-white shadow-sm transition hover:bg-tg-blue-dark disabled:bg-tg-surface disabled:text-tg-secondary"
+          className={`grid size-10 shrink-0 place-items-center rounded-full transition ${
+            canSend ? 'bg-mx-accent text-white hover:bg-mx-accent-dark' : 'text-mx-secondary'
+          }`}
         >
-          {editing ? <Check size={24} /> : <Send size={22} />}
+          {editing ? <Check size={22} /> : <Send size={20} />}
         </button>
       </div>
     </form>

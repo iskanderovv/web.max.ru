@@ -21,14 +21,14 @@ export function Modal({
 
   return (
     <div
-      className="tg-backdrop fixed inset-0 z-30 grid place-items-center bg-black/40 p-4"
+      className="mx-backdrop fixed inset-0 z-30 grid place-items-center bg-black/40 p-4"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`flex max-h-[85vh] w-full flex-col rounded-2xl bg-tg-surface shadow-xl ${wide ? 'max-w-md' : 'max-w-sm'}`}
+        className={`flex max-h-[85vh] w-full flex-col rounded-2xl bg-mx-surface shadow-xl ${wide ? 'max-w-md' : 'max-w-sm'}`}
       >
         <div className="flex items-center justify-between px-5 pt-4 pb-2">
           <h2 className="text-lg font-semibold">{title}</h2>
@@ -36,7 +36,7 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full p-1.5 text-tg-secondary hover:bg-tg-hover"
+            className="rounded-full p-1.5 text-mx-secondary hover:bg-mx-hover"
           >
             <X size={20} />
           </button>

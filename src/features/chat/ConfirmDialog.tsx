@@ -15,12 +15,12 @@ export function ConfirmDialog({
 }) {
   return (
     <Modal title={title} onClose={onClose}>
-      <p className="px-5 pb-4 text-[15px] text-tg-secondary">{message}</p>
+      <p className="px-5 pb-4 text-[15px] text-mx-secondary">{message}</p>
       <div className="flex justify-end gap-2 px-5 pb-4">
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-tg-blue hover:bg-tg-hover"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-mx-accent hover:bg-mx-hover"
         >
           Cancel
         </button>
@@ -30,7 +30,7 @@ export function ConfirmDialog({
             onConfirm()
             onClose()
           }}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-tg-danger hover:bg-tg-error-bg"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-mx-danger hover:bg-mx-error-bg"
         >
           {confirmLabel}
         </button>
