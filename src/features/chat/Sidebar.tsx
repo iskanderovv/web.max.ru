@@ -74,8 +74,25 @@ export function Sidebar() {
                       <span className="truncate font-medium">{chat.title}</span>
                       {last && (
                         <span
-                          className={`shrink-0 text-xs ${active ? 'text-white/80' : 'text-tg-secondary'}`}
+                          className={`flex shrink-0 items-center gap-1 text-xs ${
+                            active ? 'text-white/80' : 'text-tg-secondary'
+                          }`}
                         >
+                          {last.direction === 'out' && (
+                            <span
+                              className={
+                                active
+                                  ? 'text-white'
+                                  : last.status === 'failed'
+                                    ? 'text-tg-danger'
+                                    : last.status === 'sending'
+                                      ? ''
+                                      : 'text-tg-out-meta'
+                              }
+                            >
+                              <StatusIcon status={last.status} label={false} />
+                            </span>
+                          )}
                           {formatListTime(last.timestamp)}
                         </span>
                       )}
@@ -86,21 +103,6 @@ export function Sidebar() {
                           active ? 'text-white/90' : 'text-tg-secondary'
                         }`}
                       >
-                        {last?.direction === 'out' && (
-                          <span
-                            className={`shrink-0 ${
-                              active
-                                ? 'text-white'
-                                : last.status === 'failed'
-                                  ? 'text-tg-danger'
-                                  : last.status === 'sending'
-                                    ? ''
-                                    : 'text-tg-out-meta'
-                            }`}
-                          >
-                            <StatusIcon status={last.status} label={false} />
-                          </span>
-                        )}
                         <span className="truncate">
                           {last
                             ? last.direction === 'out' && isGroupLike(chat.type)

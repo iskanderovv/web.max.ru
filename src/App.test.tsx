@@ -1002,6 +1002,19 @@ describe('status marks in the chat list', () => {
     expect(marks(rowOf('Failed Chat'))).toEqual(['failed'])
   })
 
+  it('puts the mark next to the time, not before the message text', () => {
+    logIn()
+    addChat('1', 'Read Chat', { direction: 'out', status: 'read', text: 'hello there' })
+    fakeFetch()
+    renderApp()
+    const icon = rowOf('Read Chat').querySelector('[data-status]')!
+    const timeCell = icon.closest('span.shrink-0')!
+    expect(timeCell).toHaveTextContent(/^\d{1,2}:\d{2}$|^[A-Z][a-z]{2} \d{1,2}$/)
+    expect(within(rowOf('Read Chat')).getByText('hello there').parentElement).not.toContainElement(
+      icon as HTMLElement,
+    )
+  })
+
   it('shows no mark when the last message is incoming', () => {
     logIn()
     addChat('1', 'Their Chat', { direction: 'in', status: 'sent', text: 'hey' })
