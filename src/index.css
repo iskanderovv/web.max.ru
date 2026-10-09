@@ -26,7 +26,6 @@
   --mx-ring: rgb(255 255 255 / 0.1);
   --mx-scroll: rgb(255 255 255 / 0.25);
   --mx-pill: rgb(255 255 255 / 0.12);
-  --mx-dots: rgb(255 255 255 / 0.05);
   /* bubbles */
   --mx-in-bg: linear-gradient(239deg, #3b3f5e 0%, #373a4e 50%, #32343d 100%);
   --mx-out-bg: linear-gradient(239deg, #8849b4 0%, #735acd 50%, #5d6ae5 100%);
@@ -71,11 +70,11 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Chat canvas: flat ground color with a faint dot pattern (MAX uses an illustrated one). */
+/* Chat canvas: flat ground color with an original space-doodle tile in MAX's style. */
 .mx-wallpaper {
   background-color: var(--mx-ground);
-  background-image: radial-gradient(var(--mx-dots) 1.2px, transparent 1.4px);
-  background-size: 22px 22px;
+  background-image: url('/wallpaper.svg');
+  background-size: 460px 460px;
 }
 
 /*

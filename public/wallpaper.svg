@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="460" viewBox="0 0 460 460">
+<defs>
+<symbol id="planet" viewBox="-14 -14 28 28" overflow="visible"><circle r="6.5"/><ellipse rx="12.5" ry="3.8" transform="rotate(-22)"/><path d="M-3 -2.5q1.8 1 3.6 0M1.5 2.4q1.4-.8 2.6 0"/></symbol>
+<symbol id="rocket" viewBox="-14 -14 28 28" overflow="visible"><path d="M0 -12C4.6 -7 4.6 2 3.2 7.5H-3.2C-4.6 2-4.6 -7 0 -12Z"/><circle cy="-3.6" r="2"/><path d="M-3.4 3.4L-8 8.6L-3.2 7.6M3.4 3.4L8 8.6L3.2 7.6M-1.8 9.8Q0 15 1.8 9.8"/></symbol>
+<symbol id="spark" viewBox="-10 -10 20 20" overflow="visible"><path d="M0 -8.5Q1 -1 8.5 0Q1 1 0 8.5Q-1 1 -8.5 0Q-1 -1 0 -8.5Z"/></symbol>
+<symbol id="moon" viewBox="-12 -12 24 24" overflow="visible"><path d="M3 -10A10 10 0 1 0 10 3A7.4 7.4 0 0 1 3 -10Z"/><circle cx="-3" cy="2" r="1.2"/></symbol>
+<symbol id="atom" viewBox="-14 -14 28 28" overflow="visible"><ellipse rx="12" ry="4.4"/><ellipse rx="12" ry="4.4" transform="rotate(60)"/><ellipse rx="12" ry="4.4" transform="rotate(120)"/><circle r="1.7"/></symbol>
+<symbol id="comet" viewBox="-14 -14 28 28" overflow="visible"><circle cx="6" cy="-6" r="3.8"/><path d="M3.2 -3.2L-10 10M0.8 -5.6L-9 1.4M5.2 -1.2L-2.4 9.6"/></symbol>
+<symbol id="helmet" viewBox="-14 -14 28 28" overflow="visible"><rect x="-8" y="-9" width="16" height="17" rx="7.6"/><rect x="-5" y="-4.4" width="10" height="7" rx="3.4"/><path d="M-11 -1v5M11 -1v5M0 -9v-3.5"/></symbol>
+<symbol id="sat" viewBox="-16 -16 32 32" overflow="visible"><rect x="-5.6" y="-5.6" width="11.2" height="11.2" transform="rotate(45)"/><rect x="-15" y="-2.4" width="8.4" height="4.8"/><rect x="6.6" y="-2.4" width="8.4" height="4.8"/><path d="M-6.6 0H-3.6M3.6 0H6.6M0 -4.6V-9M-1.8 -9.4h3.6"/></symbol>
+<symbol id="ufo" viewBox="-14 -14 28 28" overflow="visible"><ellipse cy="2" rx="12" ry="4"/><path d="M-5.6 -0.6A5.6 5.2 0 0 1 5.6 -0.6"/><path d="M-6 6.4L-8 10.4M6 6.4L8 10.4M0 6.6V11"/></symbol>
+</defs>
+<g fill="none" stroke="#252750" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<use href="#planet" x="-31.5" y="-31.5" width="63.0" height="63.0" transform="translate(60 62) rotate(-10)"/>
+<use href="#rocket" x="-31.5" y="-31.5" width="63.0" height="63.0" transform="translate(190 48) rotate(25)"/>
+<use href="#spark" x="-23.1" y="-23.1" width="46.2" height="46.2" transform="translate(300 70) rotate(0)"/>
+<use href="#moon" x="-31.5" y="-31.5" width="63.0" height="63.0" transform="translate(400 58) rotate(15)"/>
+<use href="#comet" x="-29.4" y="-29.4" width="58.8" height="58.8" transform="translate(35 170) rotate(0)"/>
+<use href="#helmet" x="-31.5" y="-31.5" width="63.0" height="63.0" transform="translate(140 160) rotate(-8)"/>
+<use href="#atom" x="-29.4" y="-29.4" width="58.8" height="58.8" transform="translate(255 150) rotate(12)"/>
+<use href="#spark" x="-18.9" y="-18.9" width="37.8" height="37.8" transform="translate(345 175) rotate(0)"/>
+<use href="#ufo" x="-27.3" y="-27.3" width="54.6" height="54.6" transform="translate(420 170) rotate(-12)"/>
+<use href="#sat" x="-29.4" y="-29.4" width="58.8" height="58.8" transform="translate(70 280) rotate(20)"/>
+<use href="#spark" x="-21.0" y="-21.0" width="42.0" height="42.0" transform="translate(165 265) rotate(0)"/>
+<use href="#planet" x="-27.3" y="-27.3" width="54.6" height="54.6" transform="translate(250 285) rotate(25)"/>
+<use href="#rocket" x="-29.4" y="-29.4" width="58.8" height="58.8" transform="translate(350 275) rotate(-30)"/>
+<use href="#moon" x="-27.3" y="-27.3" width="54.6" height="54.6" transform="translate(45 390) rotate(-20)"/>
+<use href="#atom" x="-27.3" y="-27.3" width="54.6" height="54.6" transform="translate(130 400) rotate(0)"/>
+<use href="#comet" x="-29.4" y="-29.4" width="58.8" height="58.8" transform="translate(230 395) rotate(180)"/>
+<use href="#helmet" x="-31.5" y="-31.5" width="63.0" height="63.0" transform="translate(330 395) rotate(10)"/>
+<use href="#spark" x="-21.0" y="-21.0" width="42.0" height="42.0" transform="translate(420 300) rotate(0)"/>
+<use href="#spark" x="-25.2" y="-25.2" width="50.4" height="50.4" transform="translate(410 415) rotate(0)"/>
+
+</g>
+<g fill="#252750"><circle cx="153" cy="78" r="1.9"/><circle cx="33" cy="370" r="1.1"/><circle cx="171" cy="37" r="1.9"/><circle cx="106" cy="49" r="1.5"/><circle cx="42" cy="52" r="1.5"/><circle cx="38" cy="259" r="1.1"/><circle cx="287" cy="266" r="1.1"/><circle cx="264" cy="185" r="1.1"/><circle cx="32" cy="386" r="1.5"/><circle cx="195" cy="248" r="1.9"/><circle cx="146" cy="368" r="1.1"/><circle cx="57" cy="261" r="1.1"/><circle cx="174" cy="251" r="1.1"/><circle cx="258" cy="282" r="1.5"/><circle cx="309" cy="198" r="1.5"/><circle cx="215" cy="415" r="1.5"/><circle cx="143" cy="358" r="1.9"/><circle cx="352" cy="48" r="1.5"/><circle cx="241" cy="394" r="1.9"/><circle cx="208" cy="278" r="1.1"/><circle cx="63" cy="194" r="1.5"/><circle cx="78" cy="225" r="1.1"/><circle cx="431" cy="46" r="1.9"/><circle cx="262" cy="394" r="1.5"/><circle cx="160" cy="165" r="1.5"/><circle cx="265" cy="211" r="1.1"/><circle cx="424" cy="219" r="1.9"/><circle cx="40" cy="331" r="1.5"/><circle cx="294" cy="445" r="1.5"/><circle cx="136" cy="180" r="1.9"/><circle cx="163" cy="422" r="1.5"/><circle cx="85" cy="63" r="1.1"/><circle cx="107" cy="137" r="1.9"/><circle cx="120" cy="182" r="1.5"/></g>
+</svg>
