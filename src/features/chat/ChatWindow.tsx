@@ -36,7 +36,7 @@ function ActiveChat({ chat }: { chat: Chat }) {
 
   return (
     <section className="mx-wallpaper flex min-w-0 flex-1 flex-col">
-      <header className="relative flex h-16 shrink-0 items-center gap-3 border-b border-mx-border bg-mx-surface px-4">
+      <header className="relative flex h-[65px] shrink-0 items-center gap-3 border-b border-mx-border bg-mx-surface px-4">
         <button
           onClick={() => useChats.getState().selectChat(null)}
           aria-label="Back"
@@ -48,7 +48,7 @@ function ActiveChat({ chat }: { chat: Chat }) {
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-[16px] leading-5 font-semibold">{chat.title}</h2>
           <p
-            className={`truncate text-[13px] leading-4 ${presence && isOnline(presence) ? 'text-mx-accent' : 'text-mx-secondary'}`}
+            className={`truncate text-[12px] leading-4 ${presence && isOnline(presence) ? 'text-mx-accent' : 'text-mx-secondary'}`}
           >
             {presence ??
               ([chat.username !== chat.title ? chat.username : '', typeLabel(chat.type)]

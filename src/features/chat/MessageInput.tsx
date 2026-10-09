@@ -74,7 +74,7 @@ export function MessageInput({
 
   return (
     <form
-      className="mx-auto w-full max-w-[791px] px-4 pb-4"
+      className="mx-auto w-full max-w-[732px] px-4 pb-4"
       onSubmit={(e) => {
         e.preventDefault()
         void submit()

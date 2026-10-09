@@ -1,52 +1,20 @@
 @import 'tailwindcss';
 
 /*
- * MAX web (web.max.ru) palette, "space" theme: values read from the live app's design tokens.
- * Every color is a CSS variable switched by <html data-theme="light|dark">; the utilities below
- * read them live, so components never change classes on toggle.
+ * MAX web (web.max.ru) dark "space" theme. The values below are the app's own design tokens,
+ * read from the live site: backgrounds, text opacities, bubble gradients and radii.
  */
 :root {
-  color-scheme: light;
-  --mx-surface: #ffffff; /* panels */
-  --mx-ground: #edeef2; /* behind the chat */
-  --mx-card: #f5f7fa; /* inputs, search, cards */
-  --mx-input: #ffffff; /* floating message bar */
-  --mx-hover: #0c0d0e0f;
-  --mx-border: #0c0d0e29;
-  --mx-text: #060708;
-  --mx-secondary: #06070885;
-  --mx-accent: #007aff;
-  --mx-accent-dark: #0068d9;
-  --mx-danger: #ff303c;
-  --mx-positive: #1abe43;
-  --mx-error-bg: #ffe9ea;
-  --mx-error-text: #c4202b;
-  --mx-warn-bg: #fff4cc;
-  --mx-warn-text: #6b4e00;
-  --mx-ring: rgb(0 0 0 / 0.08);
-  --mx-scroll: rgb(0 0 0 / 0.2);
-  /* bubbles */
-  --mx-in-bg: #ffffff;
-  --mx-in-text: #060708;
-  --mx-in-time: #06070885;
-  --mx-out-bg: #e9fdff;
-  --mx-out-text: #011c29;
-  --mx-out-time: #0784b8;
-  --mx-out-tick: #0f8ec2;
-  --mx-pill: rgb(6 7 8 / 0.45);
-  --mx-dots: rgb(6 7 8 / 0.06);
-}
-
-:root[data-theme='dark'] {
   color-scheme: dark;
-  --mx-surface: #17181c;
-  --mx-ground: #0f0f12;
-  --mx-card: #25262d;
-  --mx-input: #1e1f24;
-  --mx-hover: #ffffff17;
+  --mx-surface: #17181c; /* rail + panels */
+  --mx-ground: #0f0f12; /* behind the chat */
+  --mx-card: #25262d; /* selected/hovered rows, dialogs, menus */
+  --mx-input: #1e1f24; /* floating message bar */
+  --mx-hover: #ffffff17; /* search field, subtle buttons */
   --mx-border: #ffffff1f;
   --mx-text: #ffffff;
-  --mx-secondary: #ffffffa3;
+  --mx-secondary: #ffffffa3; /* previews, times, subtitles */
+  --mx-rail: #ffffff85; /* inactive rail items */
   --mx-accent: #007aff;
   --mx-accent-dark: #1a8aff;
   --mx-danger: #ce4257;
@@ -57,15 +25,15 @@
   --mx-warn-text: #ffd60a;
   --mx-ring: rgb(255 255 255 / 0.1);
   --mx-scroll: rgb(255 255 255 / 0.25);
-  --mx-in-bg: linear-gradient(239deg, #3b3f5e 0%, #373a4e 50%, #32343d 100%);
-  --mx-in-text: #ffffff;
-  --mx-in-time: #ffffffa3;
-  --mx-out-bg: linear-gradient(239deg, #8849b4 0%, #735acd 50%, #5d6ae5 100%);
-  --mx-out-text: #ffffff;
-  --mx-out-time: #ffffffa3;
-  --mx-out-tick: #ffffffe0;
   --mx-pill: rgb(255 255 255 / 0.12);
   --mx-dots: rgb(255 255 255 / 0.05);
+  /* bubbles */
+  --mx-in-bg: linear-gradient(239deg, #3b3f5e 0%, #373a4e 50%, #32343d 100%);
+  --mx-out-bg: linear-gradient(239deg, #8849b4 0%, #735acd 50%, #5d6ae5 100%);
+  --mx-bubble-text: #ffffff;
+  --mx-bubble-time: #ffffffa3;
+  --mx-out-tick: #ffffffe0;
+  --mx-link: #4aa4ff;
 }
 
 @theme inline {
@@ -77,6 +45,7 @@
   --color-mx-border: var(--mx-border);
   --color-mx-text: var(--mx-text);
   --color-mx-secondary: var(--mx-secondary);
+  --color-mx-rail: var(--mx-rail);
   --color-mx-accent: var(--mx-accent);
   --color-mx-accent-dark: var(--mx-accent-dark);
   --color-mx-danger: var(--mx-danger);
@@ -87,6 +56,7 @@
   --color-mx-warn-text: var(--mx-warn-text);
   --color-mx-ring: var(--mx-ring);
   --color-mx-pill: var(--mx-pill);
+  --color-mx-link: var(--mx-link);
   --font-sans: -apple-system, system-ui, Roboto, Avenir, Helvetica, Arial, sans-serif;
 }
 
@@ -108,20 +78,40 @@ body {
   background-size: 22px 22px;
 }
 
-/* Bubbles. Corner radii follow MAX: 16px, with 6px on the side facing the author. */
+/*
+ * Bubbles: 16px corners; on the side facing the author, neighbours in a run get 6px corners
+ * (first: bottom, middle: top + bottom, last: top), exactly like MAX's grouped messages.
+ */
 .mx-bubble {
   border-radius: 16px;
   padding: 8px 10px 6px;
+  color: var(--mx-bubble-text);
 }
 .mx-bubble-in {
   background: var(--mx-in-bg);
-  color: var(--mx-in-text);
-  border-bottom-left-radius: 6px;
 }
 .mx-bubble-out {
   background: var(--mx-out-bg);
-  color: var(--mx-out-text);
+}
+.mx-bubble-in[data-pos='first'] {
+  border-bottom-left-radius: 6px;
+}
+.mx-bubble-in[data-pos='middle'] {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+.mx-bubble-in[data-pos='last'] {
+  border-top-left-radius: 6px;
+}
+.mx-bubble-out[data-pos='first'] {
   border-bottom-right-radius: 6px;
+}
+.mx-bubble-out[data-pos='middle'] {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+.mx-bubble-out[data-pos='last'] {
+  border-top-right-radius: 6px;
 }
 
 .mx-scroll::-webkit-scrollbar {
@@ -132,24 +122,6 @@ body {
   border-radius: 3px;
 }
 
-/*
- * Theme switch is a single cross-fade of the whole page (View Transitions API), not per-element
- * CSS transitions: inherited properties such as `color` restart on every descendant and flicker.
- */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.3s;
-  animation-timing-function: ease;
-}
-
-@keyframes mx-slide-in {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
 @keyframes mx-fade-in {
   from {
     opacity: 0;
@@ -167,9 +139,6 @@ body {
     opacity: 1;
     transform: scale(1);
   }
-}
-.mx-drawer {
-  animation: mx-slide-in 0.2s ease-out;
 }
 .mx-backdrop {
   animation: mx-fade-in 0.2s ease-out;

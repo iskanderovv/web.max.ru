@@ -26,10 +26,15 @@ export function MessageList({
 
   return (
     <div className="mx-scroll flex-1 overflow-y-auto">
-      <ol className="mx-auto flex max-w-[791px] flex-col gap-1 px-4 py-4" aria-label="Messages">
+      <ol className="mx-auto flex max-w-[732px] flex-col gap-0.5 px-4 py-4" aria-label="Messages">
         {chat.messages.map((m, i) => {
           const prev = chat.messages[i - 1]
+          const next = chat.messages[i + 1]
           const newDay = !prev || dayKey(prev.timestamp) !== dayKey(m.timestamp)
+          const withPrev = !!prev && !newDay && sameRun(prev, m)
+          const withNext =
+            !!next && dayKey(next.timestamp) === dayKey(m.timestamp) && sameRun(m, next)
+          const pos: Pos = withPrev ? (withNext ? 'middle' : 'last') : withNext ? 'first' : 'single'
           return (
             <Fragment key={m.id}>
               {newDay && (
@@ -46,7 +51,7 @@ export function MessageList({
                   m.direction === 'in' &&
                   (!prev || prev.direction !== 'in' || prev.author !== m.author || newDay)
                 }
-                grouped={!!prev && !newDay && prev.direction === m.direction}
+                pos={pos}
                 onRetry={() => retry(chat.chatId, m.id, m.text)}
                 onEdit={() => onEdit(m)}
                 onDelete={() => onDelete(m)}
@@ -60,17 +65,23 @@ export function MessageList({
   )
 }
 
+type Pos = 'single' | 'first' | 'middle' | 'last'
+
+/** Consecutive messages from the same side (and author) form a run, like in MAX. */
+const sameRun = (a: ChatMessage, b: ChatMessage) =>
+  a.direction === b.direction && (a.direction === 'out' || a.author === b.author)
+
 function Bubble({
   message: m,
   showAuthor,
-  grouped,
+  pos,
   onRetry,
   onEdit,
   onDelete,
 }: {
   message: ChatMessage
   showAuthor: boolean
-  grouped: boolean
+  pos: Pos
   onRetry: () => void
   onEdit: () => void
   onDelete: () => void
@@ -79,15 +90,18 @@ function Bubble({
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <li className={`flex ${out ? 'justify-end' : 'justify-start'} ${grouped ? '' : 'mt-1.5'}`}>
+    <li
+      className={`flex ${out ? 'justify-end' : 'justify-start'} ${pos === 'single' || pos === 'first' ? 'mt-1.5' : ''}`}
+    >
       <div
         onContextMenu={(e) => {
           e.preventDefault()
           setMenuOpen(true)
         }}
+        data-pos={pos}
         className={`group mx-bubble relative max-w-[min(34rem,78%)] text-[16px] leading-[22px] ${
           out ? 'mx-bubble-out' : 'mx-bubble-in'
-        } ${grouped ? (out ? 'rounded-tr-[6px]' : 'rounded-tl-[6px]') : ''}`}
+        }`}
       >
         <button
           type="button"
@@ -100,12 +114,12 @@ function Bubble({
         </button>
 
         {showAuthor && m.author && (
-          <span className="block pr-5 text-sm font-medium text-[#4aa4ff]">{m.author}</span>
+          <span className="block pr-5 text-sm font-medium text-mx-link">{m.author}</span>
         )}
         <span className="break-words whitespace-pre-wrap">{m.text}</span>
         <span
           className="float-right mt-1.5 ml-3 flex items-center gap-1 text-[12px] leading-4"
-          style={{ color: out ? 'var(--mx-out-time)' : 'var(--mx-in-time)' }}
+          style={{ color: 'var(--mx-bubble-time)' }}
         >
           {m.edited && <span>edited</span>}
           {formatTime(m.timestamp)}
