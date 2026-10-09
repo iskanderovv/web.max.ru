@@ -28,3 +28,22 @@ export class ValidationError extends Error {
 }
 
 export const isAbortError = (e: unknown) => e instanceof DOMException && e.name === 'AbortError'
+
+/** Monthly Developer-plan budget of one API method is used up (HTTP 466). */
+export class QuotaError extends ApiError {
+  method: string
+  used: number
+  total: number
+
+  constructor(method: string, used: number, total: number, body?: unknown) {
+    super(
+      `Monthly limit of the free GREEN-API plan reached for “${method}” (${used}/${total}). It resets next month, or upgrade the plan.`,
+      466,
+      body,
+    )
+    this.name = 'QuotaError'
+    this.method = method
+    this.used = used
+    this.total = total
+  }
+}

@@ -1,8 +1,24 @@
 export type Lane = 'user' | 'background'
 
+/** GREEN-API allows only 1 request/second for these methods (per instance); see its rate limiter. */
+const ONE_PER_SECOND_MS = 1100
+export const DEFAULT_METHOD_GAPS: Record<string, number> = {
+  getContacts: ONE_PER_SECOND_MS,
+  getChats: ONE_PER_SECOND_MS,
+  getChatHistory: ONE_PER_SECOND_MS,
+  getSettings: ONE_PER_SECOND_MS,
+  setSettings: ONE_PER_SECOND_MS,
+  getAccountSettings: ONE_PER_SECOND_MS,
+  deleteMessage: ONE_PER_SECOND_MS,
+  // Not in the published table, but it started answering 429 well below 10 req/s.
+  getContactInfo: ONE_PER_SECOND_MS,
+}
+
 export const schedulerConfig = {
-  /** Minimum spacing between request starts. Keeps bursts under the API rate limit. */
-  gapMs: 250,
+  /** Minimum spacing between any two request starts (all methods allow >= 10/s). */
+  gapMs: 120,
+  /** Extra minimum spacing between two calls of the same method. */
+  methodGapMs: DEFAULT_METHOD_GAPS as Record<string, number>,
   /** First retry delay after HTTP 429; doubles each attempt (or `Retry-After` wins). */
   retryBaseMs: 1000,
   maxRetries: 3,
@@ -12,42 +28,67 @@ export const configureScheduler = (patch: Partial<typeof schedulerConfig>) =>
   Object.assign(schedulerConfig, patch)
 
 interface Job {
+  key?: string
   start: () => void
   abort: () => void
   signal?: AbortSignal
 }
 
 const queues: Record<Lane, Job[]> = { user: [], background: [] }
+const LANES = ['user', 'background'] as const
 let lastStart = -Infinity
+const lastStartByKey = new Map<string, number>()
 let timer: ReturnType<typeof setTimeout> | undefined
 
 export const abortError = () => new DOMException('Aborted', 'AbortError')
 
-function nextJob(): Job | undefined {
-  for (const lane of ['user', 'background'] as const) {
-    const q = queues[lane]
-    while (q.length) {
-      const job = q.shift()!
-      if (job.signal?.aborted) {
-        job.abort()
-        continue
-      }
-      return job
-    }
-  }
-  return undefined
+/** Earliest moment this job may start without breaking the global or per-method spacing. */
+function eligibleAt(job: Job) {
+  const global = lastStart + schedulerConfig.gapMs
+  const gap = job.key ? (schedulerConfig.methodGapMs[job.key] ?? 0) : 0
+  const perMethod = gap && job.key ? (lastStartByKey.get(job.key) ?? -Infinity) + gap : -Infinity
+  return Math.max(global, perMethod)
 }
 
-const hasJobs = () => queues.user.length > 0 || queues.background.length > 0
+function dropAborted() {
+  for (const lane of LANES) {
+    queues[lane] = queues[lane].filter((job) => {
+      if (!job.signal?.aborted) return true
+      job.abort()
+      return false
+    })
+  }
+}
+
+/** Highest-priority job that may start right now, else the wait until the soonest one may. */
+function pick(now: number): { job?: Job; wait: number } {
+  let wait = Infinity
+  for (const lane of LANES) {
+    for (const job of queues[lane]) {
+      const at = eligibleAt(job)
+      if (at <= now) return { job, wait: 0 }
+      wait = Math.min(wait, at - now)
+    }
+  }
+  return { wait }
+}
 
 function pump() {
-  if (timer !== undefined || !hasJobs()) return
-  const wait = Math.max(0, lastStart + schedulerConfig.gapMs - Date.now())
+  dropAborted()
+  if (timer !== undefined) return
+  const { wait } = pick(Date.now())
+  if (wait === Infinity) return
   timer = setTimeout(() => {
     timer = undefined
-    const job = nextJob()
+    dropAborted()
+    const { job } = pick(Date.now())
     if (job) {
+      for (const lane of LANES) {
+        const i = queues[lane].indexOf(job)
+        if (i >= 0) queues[lane].splice(i, 1)
+      }
       lastStart = Date.now()
+      if (job.key) lastStartByKey.set(job.key, lastStart)
       job.start()
     }
     pump()
@@ -55,13 +96,19 @@ function pump() {
 }
 
 /**
- * Starts tasks at most one per `gapMs`, user-facing lane first, so background lookups
- * (avatars, presence, names, sync) can never starve or burst ahead of a user action.
+ * Starts tasks at most one per `gapMs` (and per `methodGapMs[key]` for the same method),
+ * user-facing lane first, so background lookups can never starve or burst ahead of a user action.
  */
-export function schedule<T>(lane: Lane, task: () => Promise<T>, signal?: AbortSignal): Promise<T> {
+export function schedule<T>(
+  lane: Lane,
+  task: () => Promise<T>,
+  signal?: AbortSignal,
+  key?: string,
+): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     if (signal?.aborted) return reject(abortError())
     const job: Job = {
+      key,
       signal,
       start: () => {
         signal?.removeEventListener('abort', onAbort)

@@ -68,6 +68,21 @@ describe('schedule', () => {
   })
 })
 
+describe('per-method spacing', () => {
+  beforeEach(() => configureScheduler({ gapMs: 0, methodGapMs: { slow: 60 } }))
+  afterEach(() => configureScheduler({ methodGapMs: saved.methodGapMs }))
+
+  it('spaces calls of the same method but lets other methods through', async () => {
+    const t0 = Date.now()
+    const at: Record<string, number> = {}
+    const run = (name: string, key: string) =>
+      schedule('user', async () => void (at[name] = Date.now() - t0), undefined, key)
+    await Promise.all([run('s1', 'slow'), run('s2', 'slow'), run('fast', 'fast')])
+    expect(at.s2 - at.s1).toBeGreaterThanOrEqual(55)
+    expect(at.fast).toBeLessThan(at.s2) // not stuck behind the slow method's wait
+  })
+})
+
 describe('sleep', () => {
   it('rejects when aborted', async () => {
     const ctl = new AbortController()

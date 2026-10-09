@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import incoming from '../../fixtures/receive-incoming-text.json'
 import other from '../../fixtures/receive-other-type.json'
 import { buildUrl } from './client'
-import { ApiError, NetworkError, ValidationError } from './errors'
+import { ApiError, NetworkError, QuotaError, ValidationError } from './errors'
+import { quotaFor, resetQuotaState } from './quota'
 import { configureScheduler } from './scheduler'
 import { createGreenApi } from './green'
 import { notificationSchema, parseIncomingText, type Credentials } from './schemas'
@@ -205,5 +206,60 @@ describe('rate limiting (HTTP 429)', () => {
     } finally {
       configureScheduler({ gapMs: 0 })
     }
+  })
+})
+
+describe('monthly quota (HTTP 466)', () => {
+  const quotaBody = (method: string) =>
+    new Response(
+      JSON.stringify({ invokeStatus: { method, used: 100, total: 100, status: 'QUOTE_EXCEEDED' } }),
+      { status: 466 },
+    )
+
+  it('turns 466 into a QuotaError with the numbers', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(quotaBody('getContactInfo')))
+    const err = await createGreenApi(creds)
+      .getContactInfo('1')
+      .catch((e) => e)
+    expect(err).toBeInstanceOf(QuotaError)
+    expect(err).toBeInstanceOf(ApiError)
+    expect(err).toMatchObject({ status: 466, method: 'getContactInfo', used: 100, total: 100 })
+    expect(err.message).toMatch(/100\/100/)
+  })
+
+  it('does not retry 466 and stops calling the exhausted method, but not others', async () => {
+    const fn = vi
+      .fn()
+      .mockImplementation(async (url: string) =>
+        url.includes('getContactInfo')
+          ? quotaBody('getContactInfo')
+          : new Response(JSON.stringify({ urlAvatar: '' })),
+      )
+    vi.stubGlobal('fetch', fn)
+    const api = createGreenApi(creds)
+    await expect(api.getContactInfo('1')).rejects.toBeInstanceOf(QuotaError)
+    expect(fn).toHaveBeenCalledTimes(1)
+    await expect(api.getContactInfo('2')).rejects.toBeInstanceOf(QuotaError)
+    expect(fn).toHaveBeenCalledTimes(1) // no network call the second time
+    await expect(api.getAvatar('1')).resolves.toBe('')
+    expect(fn).toHaveBeenCalledTimes(2)
+  })
+
+  it('remembers exhaustion across reloads within the month, forgets it next month', () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(quotaBody('checkAccount')))
+    return createGreenApi(creds)
+      .checkAccount({ phoneNumber: 1 })
+      .catch(() => {
+        expect(JSON.parse(localStorage.getItem('tg-chat-quota')!).methods.checkAccount).toEqual({
+          used: 100,
+          total: 100,
+        })
+        expect(quotaFor('checkAccount')).toBeDefined()
+        const saved = JSON.parse(localStorage.getItem('tg-chat-quota')!)
+        localStorage.setItem('tg-chat-quota', JSON.stringify({ ...saved, month: '1999-1' }))
+        resetQuotaState() // simulates a fresh page load...
+        localStorage.setItem('tg-chat-quota', JSON.stringify({ ...saved, month: '1999-1' }))
+        expect(quotaFor('checkAccount')).toBeUndefined() // ...in a later month
+      })
   })
 })

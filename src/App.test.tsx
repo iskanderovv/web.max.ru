@@ -459,25 +459,26 @@ describe('receiving', () => {
 })
 
 describe('menu, contacts, chat management', () => {
-  it('burger opens the side menu with the account photo, name and actions', async () => {
+  it('burger opens the side menu with the account photo, phone, username and actions', async () => {
     const user = userEvent.setup()
     logIn()
-    fakeFetch({
+    const api = fakeFetch({
       getAccountSettings: {
         chatId: '777',
         phone: '998885880331',
         username: '@my_account',
         avatar: 'https://img.test/me.jpg',
       },
-      getContactInfo: { lastSeen: 0, name: 'Akbar Iskandarov' },
     })
     renderApp()
     await user.click(screen.getByRole('button', { name: 'Menu' }))
     const nav = screen.getByRole('navigation', { name: /main menu/i })
-    expect(await within(nav).findByText('Akbar Iskandarov')).toBeInTheDocument()
-    expect(within(nav).getByText('+998885880331 · @my_account')).toBeInTheDocument()
+    expect(await within(nav).findByText('+998885880331')).toBeInTheDocument()
+    expect(within(nav).getByText('@my_account')).toBeInTheDocument()
     expect(nav.querySelector('img')).toHaveAttribute('src', 'https://img.test/me.jpg')
     expect(within(nav).queryByText(/instance/i)).not.toBeInTheDocument()
+    // The metered display-name lookup is not spent on the menu.
+    expect(api.of('getContactInfo')).toHaveLength(0)
     for (const name of ['New chat', 'Contacts', 'Log out']) {
       expect(within(nav).getByRole('button', { name })).toBeInTheDocument()
     }
@@ -787,6 +788,8 @@ describe('message actions', () => {
 })
 
 describe('presence', () => {
+  afterEach(() => vi.useRealTimers())
+
   const openChat = (type?: 'user' | 'bot' | 'channel') => {
     logIn()
     useChats.getState().ensureChat({ chatId: '9', title: '@zed_user', type })
@@ -833,58 +836,54 @@ describe('presence', () => {
   })
 })
 
-describe('contacts presence', () => {
-  const NOWS = () => Math.floor(Date.now() / 1000)
-
-  it('shows online / last seen under contact names instead of username and phone', async () => {
-    const user = userEvent.setup()
-    logIn()
-    const api = fakeFetch({
-      getContacts: [
-        {
-          chatId: '1',
-          contactName: 'Ann Lee',
-          type: 'user',
-          username: '@ann',
-          phoneNumber: 998901112233,
-        },
-        { chatId: '2', contactName: 'Bob Roy', type: 'user', username: '@bob' },
-        { chatId: '3', contactName: 'Cid Poe', type: 'user' },
-      ],
-      getContactInfo: (_url, init) => {
-        const { chatId } = JSON.parse(String(init?.body))
-        const lastSeen = chatId === '1' ? NOWS() - 5 : chatId === '2' ? 0 : NOWS() - 3 * 86_400
-        return new Response(JSON.stringify({ lastSeen }))
-      },
-    })
-    renderApp()
+describe('contacts list and the metered presence lookup', () => {
+  const CONTACTS = [
+    {
+      chatId: '1',
+      contactName: 'Ann Lee',
+      type: 'user',
+      username: '@ann',
+      phoneNumber: 998901112233,
+    },
+    { chatId: '2', contactName: 'Bob Roy', type: 'user', username: '@bob' },
+    { chatId: '3', contactName: 'Cid Poe', type: 'user' },
+  ]
+  const openContacts = async (user: ReturnType<typeof userEvent.setup>) => {
     await user.click(screen.getByRole('button', { name: 'Menu' }))
     await user.click(screen.getByRole('button', { name: 'Contacts' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Contacts' })
-    expect(await within(dialog).findByText('online')).toBeInTheDocument()
-    expect(await within(dialog).findByText('last seen recently')).toBeInTheDocument()
-    expect(await within(dialog).findByText(/^last seen [A-Z][a-z]{2} \d{1,2}$/)).toBeInTheDocument()
-    expect(within(dialog).queryByText(/@ann|@bob|998901112233/)).not.toBeInTheDocument()
-    expect(
-      api
-        .of('getContactInfo')
-        .map((c) => bodyOf(c).chatId)
-        .sort(),
-    ).toEqual(['1', '2', '3'])
+    return screen.findByRole('dialog', { name: 'Contacts' })
+  }
+
+  it('shows username and phone under names and never fetches presence per row', async () => {
+    const user = userEvent.setup()
+    logIn()
+    const api = fakeFetch({ getContacts: CONTACTS })
+    renderApp()
+    const dialog = await openContacts(user)
+    expect(await within(dialog).findByText('@ann · +998901112233')).toBeInTheDocument()
+    expect(within(dialog).getByText('@bob')).toBeInTheDocument()
+    expect(within(dialog).getByText('Telegram')).toBeInTheDocument()
+    await new Promise((r) => setTimeout(r, 50))
+    expect(api.of('getContactInfo')).toHaveLength(0)
   })
 
-  it('shows a neutral status when a lookup fails', async () => {
+  it('shows the status of a contact whose chat was already opened (shared cache)', async () => {
     const user = userEvent.setup()
     logIn()
-    fakeFetch({
-      getContacts: [{ chatId: '1', contactName: 'Ann Lee', type: 'user' }],
-      getContactInfo: () => new Response('{}', { status: 500 }),
+    useChats
+      .getState()
+      .ensureChat({ chatId: '1', title: 'Ann Lee', type: 'user', titleChecked: true } as never)
+    useChats.getState().selectChat('1')
+    const api = fakeFetch({
+      getContacts: CONTACTS,
+      getContactInfo: { lastSeen: Math.floor(Date.now() / 1000) - 5 },
     })
     renderApp()
-    await user.click(screen.getByRole('button', { name: 'Menu' }))
-    await user.click(screen.getByRole('button', { name: 'Contacts' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Contacts' })
-    expect(await within(dialog).findByText('last seen recently')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getAllByText('online').length).toBeGreaterThan(0))
+    const dialog = await openContacts(user)
+    expect(await within(dialog).findByText('online')).toBeInTheDocument()
+    expect(within(dialog).getByText('@bob')).toBeInTheDocument()
+    expect(api.of('getContactInfo')).toHaveLength(1)
   })
 })
 
@@ -1102,5 +1101,53 @@ describe('notification settings banner', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/incoming messages are disabled/i)
     await user.click(screen.getByRole('button', { name: 'Turn on' }))
     expect(await screen.findByText(/could not change settings/i)).toBeInTheDocument()
+  })
+})
+
+describe('API quota and presence budget', () => {
+  it('looks presence up once per opened chat and does not poll', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    logIn()
+    useChats.getState().ensureChat({ chatId: '9', title: 'Zed', type: 'user' })
+    useChats.getState().selectChat('9')
+    const api = fakeFetch({ getContactInfo: { lastSeen: 0 } })
+    renderApp()
+    await screen.findByText('last seen recently')
+    await vi.advanceTimersByTimeAsync(10 * 60_000)
+    expect(api.of('getContactInfo')).toHaveLength(1)
+  })
+
+  it('falls back to the username when the monthly quota is used up, then stops calling', async () => {
+    logIn()
+    useChats
+      .getState()
+      .ensureChat({ chatId: '9', title: 'Zed', username: '@zed_user', type: 'user' })
+    useChats
+      .getState()
+      .ensureChat({ chatId: '8', title: 'Amy', username: '@amy_user', type: 'user' })
+    useChats.getState().selectChat('9')
+    const api = fakeFetch({
+      getContactInfo: () =>
+        new Response(
+          JSON.stringify({
+            invokeStatus: {
+              method: 'getContactInfo',
+              used: 100,
+              total: 100,
+              status: 'QUOTE_EXCEEDED',
+            },
+          }),
+          { status: 466 },
+        ),
+    })
+    renderApp()
+    expect(await screen.findByText('@zed_user')).toBeInTheDocument()
+    await waitFor(() => expect(api.of('getContactInfo').length).toBeGreaterThanOrEqual(1))
+    const callsAfterFirst = api.of('getContactInfo').length
+    // opening another chat must not hit the exhausted method again
+    useChats.getState().selectChat('8')
+    expect(await screen.findByText('@amy_user')).toBeInTheDocument()
+    await new Promise((r) => setTimeout(r, 50))
+    expect(api.of('getContactInfo')).toHaveLength(callsAfterFirst)
   })
 })

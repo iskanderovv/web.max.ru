@@ -1,5 +1,6 @@
 import type { ZodType } from 'zod'
-import { ApiError, NetworkError, ValidationError, isAbortError } from './errors'
+import { ApiError, NetworkError, QuotaError, ValidationError, isAbortError } from './errors'
+import { markExhausted, parseQuotaBody, quotaFor } from './quota'
 import { schedule, schedulerConfig, sleep, type Lane } from './scheduler'
 import type { Credentials } from './schemas'
 
@@ -51,6 +52,9 @@ export async function request<T>(
 ): Promise<T> {
   const url = buildUrl(c, method, opts.extra, opts.query)
 
+  const spent = quotaFor(method)
+  if (spent) throw new QuotaError(method, spent.used, spent.total)
+
   async function fetchOnce(): Promise<Response> {
     try {
       return await fetch(url, {
@@ -66,7 +70,9 @@ export async function request<T>(
   }
 
   const send = () =>
-    UNSCHEDULED_METHODS.has(method) ? fetchOnce() : schedule(laneOf(method), fetchOnce, opts.signal)
+    UNSCHEDULED_METHODS.has(method)
+      ? fetchOnce()
+      : schedule(laneOf(method), fetchOnce, opts.signal, method)
 
   // HTTP 429 means "slow down": wait (Retry-After or exponential) and queue the call again.
   let res = await send()
@@ -82,6 +88,14 @@ export async function request<T>(
       json = JSON.parse(text)
     } catch {
       json = text
+    }
+  }
+
+  if (res.status === 466) {
+    const q = parseQuotaBody(json)
+    if (q && q.total > 0) {
+      markExhausted(method, { used: q.used, total: q.total })
+      throw new QuotaError(method, q.used, q.total, json)
     }
   }
 

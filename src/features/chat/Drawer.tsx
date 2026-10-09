@@ -24,7 +24,7 @@ export function Drawer({
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const title = account?.name || account?.phone || 'Telegram account'
+  const title = account?.phone || 'Telegram account'
 
   return (
     <div className="fixed inset-0 z-20">
@@ -36,10 +36,8 @@ export function Drawer({
         <div className="bg-tg-blue px-5 pt-6 pb-4 text-white">
           <Avatar id={account?.chatId ?? 'me'} title={title} url={account?.avatarUrl} size={64} />
           <p className="mt-3 truncate font-medium">{title}</p>
-          {account && (
-            <p className="truncate text-sm text-white/80">
-              {[account.name ? account.phone : '', account.username].filter(Boolean).join(' · ')}
-            </p>
+          {account?.username && (
+            <p className="truncate text-sm text-white/80">{account.username}</p>
           )}
         </div>
         <ul className="flex-1 py-2">

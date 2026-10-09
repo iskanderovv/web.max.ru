@@ -4,8 +4,8 @@ import { syncDelivery } from '@/lib/sync'
 import { useChats } from '@/store/chats'
 import { useGreenApi } from './useGreenApi'
 
-export const BACKGROUND_SYNC_MS = 20_000
-const MAX_CHATS_PER_PASS = 3
+export const BACKGROUND_SYNC_MS = 60_000
+const MAX_CHATS_PER_PASS = 2
 
 /** Chats whose latest message is ours and not yet read, newest first (the open chat syncs itself). */
 export function chatsAwaitingRead(activeChatId: string | null, limit = MAX_CHATS_PER_PASS) {

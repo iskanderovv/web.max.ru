@@ -2,9 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { Contact } from '@/api/schemas'
-import { useContactPresence } from '@/hooks/useContactPresence'
+import { useCachedPresence } from '@/hooks/useCachedPresence'
 import { useGreenApi } from '@/hooks/useGreenApi'
-import { useVisible } from '@/hooks/useVisible'
 import { isOnline } from '@/lib/presence'
 import { useChats } from '@/store/chats'
 import { Avatar } from './Avatar'
@@ -87,11 +86,13 @@ export function ContactsDialog({ onClose }: { onClose: () => void }) {
 }
 
 function ContactRow({ contact: c, onOpen }: { contact: Contact; onOpen: () => void }) {
-  const { ref, visible } = useVisible<HTMLLIElement>()
-  const { text, failed } = useContactPresence(c.chatId, visible)
+  const presence = useCachedPresence(c.chatId)
+  const fallback = [c.username, c.phoneNumber ? `+${c.phoneNumber}` : '']
+    .filter(Boolean)
+    .join(' · ')
 
   return (
-    <li ref={ref}>
+    <li>
       <button
         onClick={onOpen}
         className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-tg-hover"
@@ -100,9 +101,9 @@ function ContactRow({ contact: c, onOpen }: { contact: Contact; onOpen: () => vo
         <span className="min-w-0">
           <span className="block truncate font-medium">{displayName(c)}</span>
           <span
-            className={`block truncate text-sm ${text && isOnline(text) ? 'text-tg-blue' : 'text-tg-secondary'}`}
+            className={`block truncate text-sm ${presence && isOnline(presence) ? 'text-tg-blue' : 'text-tg-secondary'}`}
           >
-            {text ?? (failed ? 'last seen recently' : '…')}
+            {presence ?? (fallback || 'Telegram')}
           </span>
         </span>
       </button>

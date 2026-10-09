@@ -8,7 +8,11 @@ import { applyTheme, useTheme } from './store/theme'
 applyTheme(useTheme.getState().theme)
 
 const queryClient = new QueryClient({
-  defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
+  defaultOptions: {
+    mutations: { retry: false },
+    // Many calls are metered by the API plan: never refetch just because the tab got focus.
+    queries: { retry: false, refetchOnWindowFocus: false },
+  },
 })
 
 createRoot(document.getElementById('root')!).render(
