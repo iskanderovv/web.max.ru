@@ -4,7 +4,7 @@ import { dayKey, formatTime } from './time'
  * Telegram exposes no presence events, only `lastSeen`. A value this fresh means the user is
  * active right now; the window is a heuristic, so the label stays approximate.
  */
-export const ONLINE_WINDOW_SEC = 90
+const ONLINE_WINDOW_SEC = 90
 
 /** "online" / "last seen today at 14:05" / "last seen recently" (hidden by privacy). */
 export function presenceText(lastSeen: number | undefined, nowMs = Date.now()) {

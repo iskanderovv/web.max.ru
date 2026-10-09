@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react'
 import { useGreenApi } from './useGreenApi'
 
-export const TYPING_THROTTLE_MS = 3000
+const TYPING_THROTTLE_MS = 3000
 const TYPING_DURATION_MS = 2000
 
 /** Tells the recipient we are typing; at most one request per throttle window, best effort. */

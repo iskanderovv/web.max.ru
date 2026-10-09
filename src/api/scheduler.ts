@@ -2,7 +2,7 @@ export type Lane = 'user' | 'background'
 
 /** GREEN-API allows only 1 request/second for these methods (per instance); see its rate limiter. */
 const ONE_PER_SECOND_MS = 1100
-export const DEFAULT_METHOD_GAPS: Record<string, number> = {
+const DEFAULT_METHOD_GAPS: Record<string, number> = {
   getContacts: ONE_PER_SECOND_MS,
   getChats: ONE_PER_SECOND_MS,
   getChatHistory: ONE_PER_SECOND_MS,
@@ -40,7 +40,7 @@ let lastStart = -Infinity
 const lastStartByKey = new Map<string, number>()
 let timer: ReturnType<typeof setTimeout> | undefined
 
-export const abortError = () => new DOMException('Aborted', 'AbortError')
+const abortError = () => new DOMException('Aborted', 'AbortError')
 
 /** Earliest moment this job may start without breaking the global or per-method spacing. */
 function eligibleAt(job: Job) {

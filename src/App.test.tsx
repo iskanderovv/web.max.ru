@@ -72,6 +72,18 @@ describe('login', () => {
     expect(useAuth.getState().credentials).toBeNull()
   })
 
+  it('log out also forgets the exhausted-method state of that instance', async () => {
+    const user = userEvent.setup()
+    const { markExhausted, quotaFor } = await import('./api/quota')
+    markExhausted('getContactInfo', { used: 100, total: 100 })
+    fakeFetch()
+    logIn()
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    await user.click(screen.getByRole('button', { name: /log out/i }))
+    expect(quotaFor('getContactInfo')).toBeUndefined()
+  })
+
   it('log out clears credentials and chats', async () => {
     const user = userEvent.setup()
     fakeFetch()

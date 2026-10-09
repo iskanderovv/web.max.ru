@@ -4,7 +4,7 @@ import { hasUnreadOutgoing, loadHistory, syncDelivery } from '@/lib/sync'
 import { useChats } from '@/store/chats'
 import { useGreenApi } from './useGreenApi'
 
-export const DELIVERY_POLL_MS = 20_000
+const DELIVERY_POLL_MS = 20_000
 
 /**
  * For the open chat: loads server history once (fresh chats only) and polls delivery marks

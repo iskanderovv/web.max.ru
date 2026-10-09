@@ -40,7 +40,7 @@ const senderDataSchema = z.looseObject({
   senderContactName: z.string().optional(),
 })
 
-export const incomingTextBodySchema = z.looseObject({
+const incomingTextBodySchema = z.looseObject({
   typeWebhook: z.literal('incomingMessageReceived'),
   timestamp: z.number(),
   idMessage: z.string(),
@@ -80,7 +80,7 @@ export function parseIncomingText(body: unknown): IncomingText | null {
   }
 }
 
-export const contactSchema = z.looseObject({
+const contactSchema = z.looseObject({
   chatId: z.string(),
   name: z.string().optional(),
   contactName: z.string().optional(),
@@ -145,12 +145,12 @@ export const emptyResponseSchema = z.unknown()
 
 export const editMessageSchema = z.object({ idMessage: z.string() })
 
-export const CHAT_TYPES = ['user', 'bot', 'group', 'supergroup', 'channel'] as const
+const CHAT_TYPES = ['user', 'bot', 'group', 'supergroup', 'channel'] as const
 export type ChatType = (typeof CHAT_TYPES)[number]
 
 export const chatTypeSchema = z.enum(CHAT_TYPES).catch('user')
 
-export const chatInfoSchema = z.looseObject({
+const chatInfoSchema = z.looseObject({
   chatId: z.string(),
   name: z.string().optional(),
   type: z.string().optional(),

@@ -22,15 +22,15 @@ export function MessageInput({
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const ref = useRef<HTMLTextAreaElement>(null)
+  const startedEditing = useRef(!!editing)
 
   // Mounted fresh per edit target (see `key` in ChatWindow): focus and fit the prefilled text.
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    if (editing) el.focus()
+    if (startedEditing.current) el.focus()
     el.style.height = 'auto'
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const tooLong = value.length > MAX_MESSAGE_LENGTH

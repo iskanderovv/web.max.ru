@@ -25,3 +25,8 @@ dist-ssr
 
 .env
 .env.*
+
+# Internal working notes (kept locally, not part of the deliverable)
+PLAN.md
+TASK.md
+coverage

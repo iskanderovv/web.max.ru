@@ -2,7 +2,7 @@ import type { GreenApi } from '@/api/green'
 import type { HistoryMessage } from '@/api/schemas'
 import { useChats, type ChatMessage } from '@/store/chats'
 
-export const HISTORY_SIZE = 30
+const HISTORY_SIZE = 30
 
 const toChatMessage = (m: HistoryMessage): ChatMessage => ({
   id: m.id,
