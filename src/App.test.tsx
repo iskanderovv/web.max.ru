@@ -1078,3 +1078,76 @@ describe('API quota and presence budget', () => {
     expect(api.of('getContactInfo')).toHaveLength(callsAfterFirst)
   })
 })
+
+describe('contact photos', () => {
+  const CONTACTS = [
+    { chatId: '1', contactName: 'Ann Lee', type: 'user' },
+    { chatId: '2', contactName: 'Bob Roy', type: 'user' },
+    { chatId: '3', contactName: 'Cid Poe', type: 'user' },
+  ]
+  const photoFor = (_url: string, init?: RequestInit) => {
+    const { chatId } = JSON.parse(String(init?.body))
+    return new Response(
+      JSON.stringify({ urlAvatar: chatId === '2' ? '' : `https://img.test/${chatId}.jpg` }),
+    )
+  }
+  const openContacts = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(screen.getByRole('button', { name: 'Contacts' }))
+    return screen.findByRole('region', { name: 'Contacts' })
+  }
+
+  it('shows profile photos in the contacts list and falls back to a letter when there is none', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({ getContacts: CONTACTS, getAvatar: photoFor })
+    renderApp()
+    const panel = await openContacts(user)
+    await waitFor(() => expect(panel.querySelectorAll('img')).toHaveLength(2))
+    expect([...panel.querySelectorAll('img')].map((i) => i.getAttribute('src')).sort()).toEqual([
+      'https://img.test/1.jpg',
+      'https://img.test/3.jpg',
+    ])
+    expect(within(panel).getByText('B')).toBeInTheDocument() // Bob has no photo: initial stays
+  })
+
+  it('looks each photo up only once, even across visits', async () => {
+    const user = userEvent.setup()
+    logIn()
+    const api = fakeFetch({ getContacts: CONTACTS, getAvatar: photoFor })
+    renderApp()
+    await openContacts(user)
+    await waitFor(() => expect(api.of('getAvatar')).toHaveLength(3))
+    await user.click(screen.getByRole('button', { name: 'Chats' }))
+    await user.click(screen.getByRole('button', { name: 'Contacts' }))
+    await screen.findByRole('region', { name: 'Contacts' })
+    await new Promise((r) => setTimeout(r, 50))
+    expect(api.of('getAvatar')).toHaveLength(3)
+  })
+
+  it('stops looking up photos when the monthly budget is spent', async () => {
+    const { AVATAR_MONTHLY_BUDGET } = await import('./hooks/useContactAvatar')
+    const { spendBudget } = await import('./api/quota')
+    for (let i = 0; i < AVATAR_MONTHLY_BUDGET; i++) spendBudget('avatar')
+    const user = userEvent.setup()
+    logIn()
+    const api = fakeFetch({ getContacts: CONTACTS, getAvatar: photoFor })
+    renderApp()
+    const panel = await openContacts(user)
+    await within(panel).findByText('Ann Lee')
+    await new Promise((r) => setTimeout(r, 50))
+    expect(api.of('getAvatar')).toHaveLength(0)
+    expect(panel.querySelectorAll('img')).toHaveLength(0)
+  })
+
+  it('keeps letter avatars (no crash) when the photo lookup fails', async () => {
+    const user = userEvent.setup()
+    logIn()
+    fakeFetch({ getContacts: CONTACTS, getAvatar: () => new Response('{}', { status: 500 }) })
+    renderApp()
+    const panel = await openContacts(user)
+    expect(await within(panel).findByText('Ann Lee')).toBeInTheDocument()
+    await new Promise((r) => setTimeout(r, 50))
+    expect(panel.querySelectorAll('img')).toHaveLength(0)
+    expect(within(panel).getByText('A')).toBeInTheDocument()
+  })
+})

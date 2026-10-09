@@ -57,6 +57,7 @@ export function resetQuotaState() {
   loadedFor = null
   try {
     localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem('tg-chat-budget')
   } catch {
     /* ignore */
   }
@@ -72,5 +73,36 @@ export function parseQuotaBody(body: unknown): (QuotaInfo & { method?: string })
     method: typeof s.method === 'string' ? s.method : undefined,
     used: Number.isFinite(used) ? used : 0,
     total: Number.isFinite(total) ? total : 0,
+  }
+}
+
+/**
+ * Self-imposed monthly budget for optional, cosmetic lookups (e.g. contact photos), so they can
+ * never use up the plan's allowance that real actions (search, add contact) depend on.
+ */
+const BUDGET_KEY = 'tg-chat-budget'
+
+function readBudget(): { month: string; spent: Record<string, number> } {
+  const month = monthStamp()
+  try {
+    const saved = JSON.parse(localStorage.getItem(BUDGET_KEY) ?? 'null')
+    if (saved?.month === month && saved.spent) return saved
+  } catch {
+    /* storage unavailable */
+  }
+  return { month, spent: {} }
+}
+
+export function budgetLeft(key: string, cap: number) {
+  return cap - (readBudget().spent[key] ?? 0)
+}
+
+export function spendBudget(key: string) {
+  const b = readBudget()
+  b.spent[key] = (b.spent[key] ?? 0) + 1
+  try {
+    localStorage.setItem(BUDGET_KEY, JSON.stringify(b))
+  } catch {
+    /* ignore */
   }
 }

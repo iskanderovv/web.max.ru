@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useAvatarCache } from '@/store/avatars'
 import { useChats } from '@/store/chats'
 import { useGreenApi } from './useGreenApi'
 
@@ -18,11 +19,14 @@ export function useAvatars() {
     ;(async () => {
       for (const chatId of pending.split(',')) {
         if (controller.signal.aborted) return
-        let url = ''
-        try {
-          url = await api.getAvatar(chatId, controller.signal)
-        } catch {
-          if (controller.signal.aborted) return
+        let url = useAvatarCache.getState().urls[chatId] ?? ''
+        if (useAvatarCache.getState().urls[chatId] === undefined) {
+          try {
+            url = await api.getAvatar(chatId, controller.signal)
+            useAvatarCache.getState().set(chatId, url)
+          } catch {
+            if (controller.signal.aborted) return
+          }
         }
         useChats.getState().setAvatar(chatId, url)
       }

@@ -102,12 +102,13 @@ export function createGreenApi(c: Credentials) {
       }),
 
     async getAvatar(chatId: string, signal?: AbortSignal): Promise<string> {
-      const res = await request(c, 'getAvatar', avatarSchema, {
+      // HTTP 204 (empty body) means "no photo": that is an answer, not an error.
+      const res = await request(c, 'getAvatar', avatarSchema.nullable(), {
         method: 'POST',
         body: { chatId },
         signal,
       })
-      return res.urlAvatar ?? ''
+      return res?.urlAvatar ?? ''
     },
 
     async getChatHistory(

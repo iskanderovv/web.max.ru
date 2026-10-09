@@ -3,7 +3,9 @@ import { Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { Contact } from '@/api/schemas'
 import { useCachedPresence } from '@/hooks/useCachedPresence'
+import { useContactAvatar } from '@/hooks/useContactAvatar'
 import { useGreenApi } from '@/hooks/useGreenApi'
+import { useInView } from '@/hooks/useInView'
 import { isOnline } from '@/lib/presence'
 import { useChats } from '@/store/chats'
 import { Avatar } from './Avatar'
@@ -92,17 +94,19 @@ export function ContactsPanel({ onAdd }: { onAdd: () => void }) {
 
 function ContactRow({ contact: c, onOpen }: { contact: Contact; onOpen: () => void }) {
   const presence = useCachedPresence(c.chatId)
+  const { ref, seen } = useInView<HTMLLIElement>()
+  const avatarUrl = useContactAvatar(c.chatId, seen)
   const fallback = [c.username, c.phoneNumber ? `+${c.phoneNumber}` : '']
     .filter(Boolean)
     .join(' · ')
 
   return (
-    <li>
+    <li ref={ref}>
       <button
         onClick={onOpen}
         className="flex w-full items-center gap-3 rounded-2xl p-2.5 text-left transition-colors hover:bg-mx-hover"
       >
-        <Avatar id={c.chatId} title={displayName(c)} size={48} />
+        <Avatar id={c.chatId} title={displayName(c)} url={avatarUrl} size={48} />
         <span className="min-w-0">
           <span className="block truncate text-[16px] font-medium">{displayName(c)}</span>
           <span

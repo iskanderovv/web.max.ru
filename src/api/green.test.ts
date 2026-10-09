@@ -263,3 +263,15 @@ describe('monthly quota (HTTP 466)', () => {
       })
   })
 })
+
+describe('getAvatar', () => {
+  it('returns the photo url', async () => {
+    mockFetch(200, { urlAvatar: 'https://img.test/a.jpg' })
+    expect(await createGreenApi(creds).getAvatar('1')).toBe('https://img.test/a.jpg')
+  })
+
+  it('treats an empty 204 reply as "no photo", not as an error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 204 })))
+    expect(await createGreenApi(creds).getAvatar('1')).toBe('')
+  })
+})
