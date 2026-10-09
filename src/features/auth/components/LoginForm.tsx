@@ -55,7 +55,9 @@ export function LoginForm() {
           </span>
           <div>
             <h1 className="text-xl font-semibold">Web Chat</h1>
-            <p className="text-xs text-mx-secondary">Sign in with your GREEN-API instance</p>
+            <p className="text-xs text-mx-secondary">
+              Sign in with your GREEN-API Telegram instance
+            </p>
           </div>
         </div>
 
